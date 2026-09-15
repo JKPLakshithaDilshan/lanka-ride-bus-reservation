@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Finance Dashboard | LankaRide</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+	<link rel="stylesheet" href="css/srilanka-travel.css" />
+</head>
+<body class="lk-travel lk-admin-page staff-page">
+	<div class="topbar staff-topbar">
+		<div class="staff-topbar-title">
+			<strong>Finance Dashboard</strong>
+			<span>Monitor payments, fares and passenger refund requests.</span>
+		</div>
+		<div class="staff-topbar-actions">
+			<span class="staff-user-chip"><i class="bi bi-cash-coin"></i> Finance</span>
+			<a class="button secondary" href="index.html"><i class="bi bi-globe2"></i> View Website</a>
+			<button id="signout" class="button" type="button"><i class="bi bi-box-arrow-right"></i> Sign Out</button>
+		</div>
+	</div>
+	<div class="layout staff-shell">
+		<aside class="sidebar staff-sidebar">
+			<div class="staff-sidebar-brand">
+				<div class="brand-line"><i class="bi bi-bus-front"></i><span>LankaRide</span></div>
+				<small>Staff Portal</small>
+			</div>
+			<div class="staff-role-badge">Finance</div>
+			<ul class="menu staff-nav">
+				<li><a class="active" href="financedashboard.html"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+				<li><a href="fare.html"><i class="bi bi-currency-exchange"></i> Manage Fare</a></li>
+				<li><a href="refundmanagement.html"><i class="bi bi-arrow-counterclockwise"></i> Refund Management</a></li>
+				<li><a href="viewpaymenthistory.html"><i class="bi bi-receipt"></i> Payment History</a></li>
+				<li><a href="index.html"><i class="bi bi-arrow-left-circle"></i> Return to Website</a></li>
+			</ul>
+		</aside>
+		<main class="content staff-main">
+			<section class="staff-page-header">
+				<div>
+					<div class="staff-breadcrumb">Staff Portal / Finance</div>
+					<h1>Finance Dashboard</h1>
+					<p>Monitor payments, fares and passenger refund requests.</p>
+				</div>
+				<a class="button" href="viewpaymenthistory.html"><i class="bi bi-receipt"></i> View Payment History</a>
+			</section>
+
+			<section class="lk-admin-stat-grid">
+				<div class="lk-admin-stat"><span>Total Payments</span><strong id="paymentCount">0</strong></div>
+				<div class="lk-admin-stat"><span>Paid Payments</span><strong id="paidCount">0</strong></div>
+				<div class="lk-admin-stat"><span>Refund Requests</span><strong id="refundCount">0</strong></div>
+				<div class="lk-admin-stat"><span>Total Revenue</span><strong id="revenueTotal">LKR 0.00</strong></div>
+			</section>
+
+			<section class="staff-content-grid">
+				<div class="staff-panel">
+					<div class="staff-panel-header">
+						<div>
+							<h2>Recent Payments</h2>
+							<p>Latest payment records from passengers.</p>
+						</div>
+						<a class="button secondary small" href="viewpaymenthistory.html">View all</a>
+					</div>
+					<div id="recentPayments" class="staff-list">
+						<div class="loading">Loading recent payments...</div>
+					</div>
+				</div>
+				<div class="staff-panel">
+					<div class="staff-panel-header">
+						<div>
+							<h2>Quick Actions</h2>
+							<p>Finance tools for fares, refunds and reports.</p>
+						</div>
+					</div>
+					<div class="staff-quick-list">
+						<a class="staff-action" href="fare.html"><i class="bi bi-currency-exchange"></i><span><strong>Manage Fares</strong><span>Add, update or remove schedule fares.</span></span><i class="bi bi-arrow-right"></i></a>
+						<a class="staff-action" href="refundmanagement.html"><i class="bi bi-arrow-counterclockwise"></i><span><strong>Review Refunds</strong><span>Approve or reject passenger refund requests.</span></span><i class="bi bi-arrow-right"></i></a>
+						<a class="staff-action" href="viewpaymenthistory.html"><i class="bi bi-file-earmark-pdf"></i><span><strong>View Payment History</strong><span>Search records and generate reports.</span></span><i class="bi bi-arrow-right"></i></a>
+					</div>
+				</div>
+			</section>
+		</main>
+	</div>
+	<script>
+		function formatLkr(value) {
+			return `LKR ${Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		}
+
+		fetch('/api/payments').then(res => res.json()).then(payments => {
+			document.getElementById('paymentCount').textContent = payments.length;
+			document.getElementById('paidCount').textContent = payments.filter(p => String(p.paymentStatus).toLowerCase() === 'paid').length;
+			document.getElementById('refundCount').textContent = payments.filter(p => String(p.paymentStatus).toLowerCase().includes('refund')).length;
+			const total = payments.filter(p => String(p.paymentStatus).toLowerCase() === 'paid').reduce((sum, p) => sum + Number(p.totalPrice || 0), 0);
+			document.getElementById('revenueTotal').textContent = formatLkr(total);
+
+			const recent = payments.slice(0, 6);
+			const target = document.getElementById('recentPayments');
+			if (!recent.length) {
+				target.innerHTML = '<div class="staff-empty-state">No payments are available yet.</div>';
+				return;
+			}
+			target.innerHTML = recent.map(payment => {
+				const booking = payment.booking || {};
+				const status = String(payment.paymentStatus || 'Pending');
+				return `
+					<div class="staff-list-row">
+						<div>
+							<strong>Payment #${payment.paymentId || 'N/A'} · Booking #${booking.bookingId || 'N/A'}</strong>
+							<p>${booking.firstName || ''} ${booking.lastName || ''} · ${formatLkr(payment.totalPrice)}</p>
+							<span>${payment.paymentDate || 'Date not available'}</span>
+						</div>
+						<span class="staff-status-badge ${status.toLowerCase() === 'paid' ? 'success' : 'pending'}">${status}</span>
+					</div>
+				`;
+			}).join('');
+		}).catch(error => {
+			console.error(error);
+			document.getElementById('recentPayments').innerHTML = '<div class="staff-empty-state">Unable to load recent payments.</div>';
+		});
+
+		document.getElementById('signout').addEventListener('click', () => {
+			localStorage.removeItem('currentUser');
+			window.location.href = 'login.html';
+		});
+	</script>
+</body>
+</html>

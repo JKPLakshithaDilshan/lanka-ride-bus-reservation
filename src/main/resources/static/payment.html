@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment • Bus Reservation</title>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+    <link rel="shortcut icon" href="assets/favicon.svg" />
+    <link rel="stylesheet" href="css/srilanka-travel.css" />
+    <style>
+        :root { 
+            --bg:#0f172a; 
+            --muted:#94a3b8; 
+            --text:#e5e7eb; 
+            --primary:#22c55e; 
+            --primary-600:#16a34a; 
+            --input:#1f2937; 
+            --ring:rgba(34,197,94,.35); 
+            --card:#111827;
+            --danger:#ef4444;
+            --danger-600:#dc2626;
+            --warning:#f59e0b;
+            --warning-600:#d97706;
+        }
+        html,body{height:100%}
+        body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica Neue,Arial;color:var(--text);background:linear-gradient(0deg,#0b1220,var(--bg));}
+        .container{max-width:800px;margin:24px auto;padding:0 16px}
+        .h1{font-size:22px;margin:16px 0;text-align:center}
+        .card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(148,163,184,.15);border-radius:14px;padding:20px;margin-bottom:16px}
+        .row{display:flex;justify-content:space-between;align-items:center;margin:8px 0}
+        .label{color:var(--muted);font-size:14px}
+        .value{font-weight:600}
+        .total{font-size:18px;color:var(--primary);border-top:1px solid rgba(148,163,184,.15);padding-top:12px;margin-top:12px}
+        .form{display:grid;gap:16px}
+        .input{padding:12px 14px;border-radius:10px;border:1px solid rgba(148,163,184,.25);background:var(--input);color:var(--text);outline:none}
+        .input:focus{box-shadow:0 0 0 4px var(--ring);border-color:var(--primary)}
+        .button{appearance:none;border:0;padding:12px 16px;border-radius:10px;background:linear-gradient(180deg,var(--primary),var(--primary-600));color:#fff;font-weight:600;cursor:pointer;width:100%}
+        .button:disabled{background:#6b7280;cursor:not-allowed}
+        .link{color:var(--primary);text-decoration:none}
+        .link:hover{text-decoration:underline}
+        .meta{color:var(--muted);text-align:center;margin-top:16px}
+        .payment-methods{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+        .payment-option{display:flex;align-items:center;padding:12px;border:2px solid rgba(148,163,184,.25);border-radius:10px;cursor:pointer;transition:all 0.2s}
+        .payment-option:hover{border-color:var(--primary)}
+        .payment-option.selected{border-color:var(--primary);background:rgba(34,197,94,.1)}
+        .payment-option input[type="radio"]{margin-right:8px;accent-color:var(--primary)}
+        .payment-icon{font-size:24px;margin-right:8px}
+        .loading{text-align:center;padding:20px;color:var(--muted)}
+        .error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:12px;border-radius:8px;margin-bottom:16px}
+        .success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#86efac;padding:12px;border-radius:8px;margin-bottom:16px}
+        
+        /* Success Modal Styles */
+        .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:1000}
+        .modal.show{display:flex}
+        .modal-content{background:#ffffff;border-radius:16px;padding:32px;max-width:500px;width:90%;text-align:center;color:#0f172a;box-shadow:0 20px 25px -5px rgba(0,0,0,.1)}
+        .success-icon{font-size:64px;color:#22c55e;margin-bottom:16px}
+        .modal-title{font-size:24px;font-weight:700;margin-bottom:8px;color:#0f172a}
+        .modal-subtitle{color:#6b7280;margin-bottom:24px;font-size:16px}
+        .booking-details{background:#f8fafc;border-radius:12px;padding:20px;margin:20px 0;text-align:left}
+        .booking-detail-row{display:flex;justify-content:space-between;margin-bottom:8px}
+        .booking-detail-label{color:#6b7280;font-size:14px}
+        .booking-detail-value{font-weight:600;color:#0f172a}
+        .modal-buttons{display:flex;gap:12px;justify-content:center;margin-top:24px}
+        .modal-button{appearance:none;border:0;padding:12px 24px;border-radius:10px;font-weight:600;cursor:pointer;font-size:14px;transition:all 0.2s}
+        .modal-button.primary{background:linear-gradient(180deg,var(--primary),var(--primary-600));color:#ffffff}
+        .modal-button.secondary{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0}
+        .modal-button:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+        .countdown{color:#6b7280;font-size:14px;margin-top:16px}
+        
+        /* Saved Cards Styles */
+        .saved-cards-list{display:grid;gap:12px;margin-top:12px}
+        .saved-card-item{background:rgba(255,255,255,.03);border:1px solid rgba(148,163,184,.2);border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;transition:all 0.2s}
+        .saved-card-item:hover{border-color:var(--primary);background:rgba(34,197,94,.05)}
+        .saved-card-item.selected{border-color:var(--primary);background:rgba(34,197,94,.12);box-shadow:0 0 0 2px var(--ring)}
+        .saved-card-info{display:flex;align-items:center;gap:12px}
+        .saved-card-icon{font-size:24px}
+        .saved-card-number{font-weight:700;letter-spacing:1px;font-size:15px}
+        .saved-card-meta{font-size:12px;color:var(--muted);margin-top:2px}
+        .saved-card-actions{display:flex;gap:6px;align-items:center}
+        .button.secondary{background:#334155;color:#fff}
+        .button.secondary:hover{background:#475569}
+        .button.danger{background:linear-gradient(180deg,var(--danger),var(--danger-600))}
+        .button.small-action{padding:6px 10px;font-size:12px;width:auto}
+        .form-select{padding:12px 14px;border-radius:10px;border:1px solid rgba(148,163,184,.25);background:var(--input);color:var(--text);outline:none;width:100%}
+    </style>
+</head>
+<body class="lk-travel">
+    <div class="container">
+        <h1 class="h1">Payment</h1>
+        
+        <div id="messageContainer"></div>
+        
+        <!-- Booking Summary -->
+        <div class="card">
+            <h3 style="margin-top:0">Booking Summary</h3>
+            <div id="bookingSummary"></div>
+        </div>
+        
+        <!-- Saved Cards Panel -->
+        <div class="card" id="savedCardsCard">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <h3 style="margin:0">Saved Payment Cards</h3>
+                <button type="button" class="button small-action secondary" id="openAddCardBtn">+ Add New Card</button>
+            </div>
+            <div id="savedCardsList">
+                <div class="loading">Loading saved cards...</div>
+            </div>
+        </div>
+
+        <!-- Payment Method Selection -->
+        <div class="card">
+            <h3 style="margin-top:0">Select Payment Method</h3>
+            <div class="payment-methods">
+                <label class="payment-option" id="visaOption">
+                    <input type="radio" name="paymentMethod" value="Visa" required>
+                    <span class="payment-icon">💳</span>
+                    <span>Visa</span>
+                </label>
+                <label class="payment-option" id="mastercardOption">
+                    <input type="radio" name="paymentMethod" value="Mastercard" required>
+                    <span class="payment-icon">💳</span>
+                    <span>Mastercard</span>
+                </label>
+            </div>
+        </div>
+        
+        <!-- Payment Form -->
+        <div class="card">
+            <h3 style="margin-top:0">Payment Details</h3>
+            <form class="form" id="paymentForm">
+                <div>
+                    <label class="label">Cardholder Name</label>
+                    <input type="text" class="input" id="cardHolderName" placeholder="Name on card" required />
+                </div>
+                <div>
+                    <label class="label">Card Number</label>
+                    <input type="text" class="input" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required />
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div>
+                        <label class="label">Expiry Date</label>
+                        <input type="text" class="input" id="expiryDate" placeholder="MM/YY" maxlength="5" required />
+                    </div>
+                    <div>
+                        <label class="label">CVV</label>
+                        <input type="text" class="input" id="cvv" placeholder="123" maxlength="4" required />
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;margin:4px 0">
+                    <input type="checkbox" id="saveCardCheckbox" style="accent-color:var(--primary);width:16px;height:16px;cursor:pointer">
+                    <label for="saveCardCheckbox" style="cursor:pointer;font-size:14px;color:var(--text)">Save this card for future bookings</label>
+                </div>
+                <button type="submit" class="button" id="payButton" disabled>Complete Payment</button>
+            </form>
+        </div>
+        
+        <div class="meta">
+            <a class="link" href="checkout.html">Back to Checkout</a>
+        </div>
+    </div>
+
+    <!-- Add Saved Card Modal -->
+    <div id="addCardModal" class="modal">
+        <div class="modal-content" style="text-align:left">
+            <h2 class="modal-title">Add Saved Payment Card</h2>
+            <p class="modal-subtitle">Save your card details securely for fast checkout.</p>
+            <div style="display:grid;gap:12px;margin:16px 0">
+                <div>
+                    <label class="label">Cardholder Name</label>
+                    <input type="text" class="input" id="newCardHolderName" placeholder="e.g. John Doe" />
+                </div>
+                <div>
+                    <label class="label">Card Type</label>
+                    <select class="form-select" id="newCardType">
+                        <option value="Visa">Visa</option>
+                        <option value="Mastercard">Mastercard</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="label">Card Number</label>
+                    <input type="text" class="input" id="newCardNumber" placeholder="1234 5678 9012 3456" maxlength="19" />
+                </div>
+                <div>
+                    <label class="label">Expiry Date</label>
+                    <input type="text" class="input" id="newExpiryDate" placeholder="MM/YY" maxlength="5" />
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-button secondary" id="cancelAddCard">Cancel</button>
+                <button class="modal-button primary" id="confirmAddCard">Save Card</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Saved Card Modal -->
+    <div id="editCardModal" class="modal">
+        <div class="modal-content" style="text-align:left">
+            <h2 class="modal-title">Edit Saved Payment Card</h2>
+            <p class="modal-subtitle">Update your card details.</p>
+            <div style="display:grid;gap:12px;margin:16px 0">
+                <div>
+                    <label class="label">Cardholder Name</label>
+                    <input type="text" class="input" id="editCardHolderName" placeholder="Name on card" />
+                </div>
+                <div>
+                    <label class="label">Card Type</label>
+                    <select class="form-select" id="editCardType">
+                        <option value="Visa">Visa</option>
+                        <option value="Mastercard">Mastercard</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="label">Expiry Date</label>
+                    <input type="text" class="input" id="editExpiryDate" placeholder="MM/YY" maxlength="5" />
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-button secondary" id="cancelEditCard">Cancel</button>
+                <button class="modal-button primary" id="confirmEditCard">Update Card</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Saved Card Modal -->
+    <div id="deleteCardModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title" style="color:var(--danger)">Delete Saved Card</h2>
+            <p class="modal-subtitle">Are you sure you want to delete this saved card? This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button class="modal-button secondary" id="cancelDeleteCard">Cancel</button>
+                <button class="modal-button primary" id="confirmDeleteCard" style="background:var(--danger-600)">Delete Permanently</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="success-icon">🎉</div>
+            <h2 class="modal-title">Booking Successful!</h2>
+            <p class="modal-subtitle">Your bus reservation has been confirmed</p>
+            
+            <div class="booking-details">
+                <div class="booking-detail-row">
+                    <span class="booking-detail-label">Booking ID:</span>
+                    <span class="booking-detail-value" id="modalBookingId">-</span>
+                </div>
+                <div class="booking-detail-row">
+                    <span class="booking-detail-label">Passenger:</span>
+                    <span class="booking-detail-value" id="modalPassengerName">-</span>
+                </div>
+                <div class="booking-detail-row">
+                    <span class="booking-detail-label">Route:</span>
+                    <span class="booking-detail-value" id="modalRoute">-</span>
+                </div>
+                <div class="booking-detail-row">
+                    <span class="booking-detail-label">Date & Time:</span>
+                    <span class="booking-detail-value" id="modalDateTime">-</span>
+                </div>
+                <div class="booking-detail-row">
+                    <span class="booking-detail-label">Total Amount:</span>
+                    <span class="booking-detail-value" id="modalAmount">-</span>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="modal-button primary" id="downloadTicketBtn">
+                    📄 Download E-Ticket
+                </button>
+                <button class="modal-button secondary" id="goHomeBtn">
+                    🏠 Go to Home
+                </button>
+            </div>
+            
+            <div class="countdown" id="countdown">
+                Redirecting to home in <span id="countdownNumber">10</span> seconds...
+            </div>
+        </div>
+    </div>
+
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <script>
+        let passengerData = {};
+        let paymentData = {};
+        let selectedPaymentMethod = '';
+        let savedCards = [];
+        let activeSavedCardId = null;
+        let targetEditCardId = null;
+        let targetDeleteCardId = null;
+        let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            loadSavedCards();
+            setupEventListeners();
+        });
+
+        function loadData() {
+            try {
+                passengerData = JSON.parse(localStorage.getItem('passengerData') || '{}');
+                paymentData = JSON.parse(localStorage.getItem('paymentData') || '{}');
+                
+                if (!passengerData.firstName || !paymentData.schedule) {
+                    showMessage('Missing booking data. Please go back to checkout.', 'error');
+                    return;
+                }
+                
+                // Prefill cardholder name if passenger data exists
+                if (passengerData.firstName) {
+                    const nameInput = document.getElementById('cardHolderName');
+                    if (nameInput) nameInput.value = `${passengerData.firstName} ${passengerData.lastName || ''}`.trim();
+                }
+
+                displayBookingSummary();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showMessage('Error loading booking data', 'error');
+            }
+        }
+
+        function displayBookingSummary() {
+            const summary = document.getElementById('bookingSummary');
+            if (!summary) return;
+            const schedule = paymentData.schedule || {};
+            const totalPrice = schedule.fare ? 
+                (parseFloat(schedule.fare) * (paymentData.count || 1)).toFixed(2) : '0.00';
+            
+            summary.innerHTML = `
+                <div class="row">
+                    <span class="label">Passenger:</span>
+                    <span class="value">${passengerData.firstName || ''} ${passengerData.lastName || ''}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Email:</span>
+                    <span class="value">${passengerData.email || '-'}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Phone:</span>
+                    <span class="value">${passengerData.phone || '-'}</span>
+                </div>
+                <div class="row">
+                    <span class="label">NIC:</span>
+                    <span class="value">${passengerData.nic || '-'}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Route:</span>
+                    <span class="value">${schedule.route?.fromStand || 'N/A'} → ${schedule.route?.toStand || 'N/A'}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Date:</span>
+                    <span class="value">${schedule.travelDate || 'N/A'}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Time:</span>
+                    <span class="value">${schedule.startTime || 'N/A'} - ${schedule.endTime || 'N/A'}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Bus:</span>
+                    <span class="value">${schedule.bus?.registrationNo || 'N/A'}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Tickets:</span>
+                    <span class="value">${paymentData.count || 1}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Fare per person:</span>
+                    <span class="value">${schedule.fare ? 'Rs. ' + schedule.fare : 'N/A'}</span>
+                </div>
+                <div class="row total">
+                    <span class="label">Total Amount:</span>
+                    <span class="value">Rs. ${totalPrice}</span>
+                </div>
+            `;
+        }
+
+        async function loadSavedCards() {
+            const listContainer = document.getElementById('savedCardsList');
+            const userId = currentUser ? currentUser.id : (passengerData.userId || null);
+
+            if (!userId) {
+                listContainer.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Log in or save a card during payment to manage cards here.</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/saved-cards/user/${userId}`);
+                if (!response.ok) throw new Error('Failed to fetch saved cards');
+                
+                savedCards = await response.json();
+                renderSavedCards(savedCards);
+            } catch (error) {
+                console.error('Error loading saved cards:', error);
+                listContainer.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">No saved cards found.</div>';
+            }
+        }
+
+        function renderSavedCards(cards) {
+            const listContainer = document.getElementById('savedCardsList');
+            listContainer.innerHTML = '';
+
+            if (!cards || cards.length === 0) {
+                listContainer.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">No saved payment cards. Add a card for fast 1-click payments!</div>';
+                return;
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'saved-cards-list';
+
+            cards.forEach(card => {
+                const isSelected = card.id === activeSavedCardId;
+                const item = document.createElement('div');
+                item.className = `saved-card-item ${isSelected ? 'selected' : ''}`;
+                item.innerHTML = `
+                    <div class="saved-card-info">
+                        <span class="saved-card-icon">${card.cardType === 'Mastercard' ? '💳' : '💳'}</span>
+                        <div>
+                            <div class="saved-card-number">${card.cardNumber}</div>
+                            <div class="saved-card-meta">${card.cardHolderName} · Exp: ${card.expiryDate} (${card.cardType})</div>
+                        </div>
+                    </div>
+                    <div class="saved-card-actions">
+                        <button type="button" class="button small-action" onclick="useSavedCard(${card.id})">${isSelected ? 'Selected' : 'Use Card'}</button>
+                        <button type="button" class="button small-action secondary" onclick="openEditCardModal(${card.id})">Edit</button>
+                        <button type="button" class="button small-action danger" onclick="openDeleteCardModal(${card.id})">Delete</button>
+                    </div>
+                `;
+                wrapper.appendChild(item);
+            });
+
+            listContainer.appendChild(wrapper);
+        }
+
+        function useSavedCard(cardId) {
+            const card = savedCards.find(c => c.id === cardId);
+            if (!card) return;
+
+            activeSavedCardId = cardId;
+            document.getElementById('cardHolderName').value = card.cardHolderName;
+            document.getElementById('cardNumber').value = card.cardNumber;
+            document.getElementById('expiryDate').value = card.expiryDate;
+            
+            // Select payment method radio
+            selectedPaymentMethod = card.cardType || 'Visa';
+            const radio = document.querySelector(`input[name="paymentMethod"][value="${selectedPaymentMethod}"]`);
+            if (radio) radio.checked = true;
+
+            updatePaymentOptionStyles();
+            renderSavedCards(savedCards);
+            
+            // Focus CVV field
+            const cvvInput = document.getElementById('cvv');
+            cvvInput.focus();
+
+            updatePayButton();
+            showMessage(`Selected ${card.cardType} card ending in ${card.cardNumber.slice(-4)}. Please enter your CVV to confirm.`, 'success');
+        }
+
+        function openAddCardModal() {
+            document.getElementById('newCardHolderName').value = currentUser ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() : '';
+            document.getElementById('newCardNumber').value = '';
+            document.getElementById('newExpiryDate').value = '';
+            document.getElementById('newCardType').value = 'Visa';
+            document.getElementById('addCardModal').classList.add('show');
+        }
+
+        function closeAddCardModal() {
+            document.getElementById('addCardModal').classList.remove('show');
+        }
+
+        async function saveNewCard() {
+            const userId = currentUser ? currentUser.id : (passengerData.userId || null);
+            const cardHolderName = document.getElementById('newCardHolderName').value.trim();
+            const cardNumber = document.getElementById('newCardNumber').value.replace(/\s/g, '').trim();
+            const cardType = document.getElementById('newCardType').value;
+            const expiryDate = document.getElementById('newExpiryDate').value.trim();
+
+            if (!cardHolderName || !cardNumber || !expiryDate) {
+                alert('Please fill in all card details');
+                return;
+            }
+
+            if (!userId) {
+                alert('Please log in to save payment cards');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/saved-cards', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, cardHolderName, cardNumber, cardType, expiryDate })
+                });
+
+                if (!response.ok) throw new Error(await response.text());
+                
+                closeAddCardModal();
+                showMessage('Card saved successfully!', 'success');
+                loadSavedCards();
+            } catch (error) {
+                console.error('Error saving card:', error);
+                alert('Error saving card: ' + error.message);
+            }
+        }
+
+        function openEditCardModal(cardId) {
+            const card = savedCards.find(c => c.id === cardId);
+            if (!card) return;
+
+            targetEditCardId = cardId;
+            document.getElementById('editCardHolderName').value = card.cardHolderName;
+            document.getElementById('editCardType').value = card.cardType || 'Visa';
+            document.getElementById('editExpiryDate').value = card.expiryDate;
+            document.getElementById('editCardModal').classList.add('show');
+        }
+
+        function closeEditCardModal() {
+            targetEditCardId = null;
+            document.getElementById('editCardModal').classList.remove('show');
+        }
+
+        async function saveEditCard() {
+            if (!targetEditCardId) return;
+
+            const cardHolderName = document.getElementById('editCardHolderName').value.trim();
+            const cardType = document.getElementById('editCardType').value;
+            const expiryDate = document.getElementById('editExpiryDate').value.trim();
+
+            if (!cardHolderName || !expiryDate) {
+                alert('Please fill in required fields');
+                return;
+            }
+
+            try {
+                const userId = currentUser ? currentUser.id : null;
+                const response = await fetch(`/api/saved-cards/${targetEditCardId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, cardHolderName, cardType, expiryDate })
+                });
+
+                if (!response.ok) throw new Error(await response.text());
+
+                closeEditCardModal();
+                showMessage('Saved card updated successfully!', 'success');
+                loadSavedCards();
+            } catch (error) {
+                console.error('Error updating card:', error);
+                alert('Error updating card: ' + error.message);
+            }
+        }
+
+        function openDeleteCardModal(cardId) {
+            targetDeleteCardId = cardId;
+            document.getElementById('deleteCardModal').classList.add('show');
+        }
+
+        function closeDeleteCardModal() {
+            targetDeleteCardId = null;
+            document.getElementById('deleteCardModal').classList.remove('show');
+        }
+
+        async function confirmDeleteCard() {
+            if (!targetDeleteCardId) return;
+
+            try {
+                const userId = currentUser ? currentUser.id : null;
+                const url = userId ? `/api/saved-cards/${targetDeleteCardId}?userId=${userId}` : `/api/saved-cards/${targetDeleteCardId}`;
+                const response = await fetch(url, { method: 'DELETE' });
+
+                if (!response.ok) throw new Error(await response.text());
+
+                closeDeleteCardModal();
+                showMessage('Saved card deleted successfully!', 'success');
+                loadSavedCards();
+            } catch (error) {
+                console.error('Error deleting card:', error);
+                alert('Error deleting card: ' + error.message);
+            }
+        }
+
+        function setupEventListeners() {
+            // Saved Card Modal triggers
+            document.getElementById('openAddCardBtn').addEventListener('click', openAddCardModal);
+            document.getElementById('cancelAddCard').addEventListener('click', closeAddCardModal);
+            document.getElementById('confirmAddCard').addEventListener('click', saveNewCard);
+
+            document.getElementById('cancelEditCard').addEventListener('click', closeEditCardModal);
+            document.getElementById('confirmEditCard').addEventListener('click', saveEditCard);
+
+            document.getElementById('cancelDeleteCard').addEventListener('click', closeDeleteCardModal);
+            document.getElementById('confirmDeleteCard').addEventListener('click', confirmDeleteCard);
+
+            // Payment method selection
+            document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    selectedPaymentMethod = e.target.value;
+                    updatePaymentOptionStyles();
+                    updatePayButton();
+                });
+            });
+
+            // Cardholder name change
+            document.getElementById('cardHolderName').addEventListener('input', updatePayButton);
+
+            // Card number formatting
+            document.getElementById('cardNumber').addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+                let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+                e.target.value = formattedValue;
+                updatePayButton();
+            });
+
+            // Expiry date formatting
+            document.getElementById('expiryDate').addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length >= 2) {
+                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                }
+                e.target.value = value;
+                updatePayButton();
+            });
+
+            // CVV formatting
+            document.getElementById('cvv').addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                updatePayButton();
+            });
+
+            // Form submission
+            document.getElementById('paymentForm').addEventListener('submit', handlePayment);
+        }
+
+        function updatePaymentOptionStyles() {
+            document.querySelectorAll('.payment-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            if (selectedPaymentMethod === 'Visa') {
+                document.getElementById('visaOption').classList.add('selected');
+            } else if (selectedPaymentMethod === 'Mastercard') {
+                document.getElementById('mastercardOption').classList.add('selected');
+            }
+        }
+
+        function updatePayButton() {
+            const cardHolderName = document.getElementById('cardHolderName').value.trim();
+            const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+            const expiryDate = document.getElementById('expiryDate').value;
+            const cvv = document.getElementById('cvv').value;
+            
+            const isValid = selectedPaymentMethod && 
+                          cardHolderName.length >= 2 &&
+                          cardNumber.length >= 16 && 
+                          expiryDate.length === 5 && 
+                          cvv.length >= 3;
+            
+            document.getElementById('payButton').disabled = !isValid;
+        }
+
+        async function handlePayment(e) {
+            e.preventDefault();
+            
+            if (!selectedPaymentMethod) {
+                showMessage('Please select a payment method', 'error');
+                return;
+            }
+
+            const payButton = document.getElementById('payButton');
+            payButton.disabled = true;
+            payButton.textContent = 'Processing...';
+            
+            // Show processing message
+            showMessage('Processing your payment...', 'success');
+
+            try {
+                // Create booking first (without payment - will be created separately)
+                const bookingData = {
+                    firstName: passengerData.firstName,
+                    lastName: passengerData.lastName,
+                    phone: passengerData.phone,
+                    email: passengerData.email,
+                    nic: passengerData.nic,
+                    bookedTickets: paymentData.count || 1,
+                    scheduleId: paymentData.schedule.scheduleId,
+                    isOnlineBooking: true
+                };
+                
+                const bookingResponse = await fetch('/api/bookings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bookingData)
+                });
+                
+                if (!bookingResponse.ok) {
+                    throw new Error('Failed to create booking');
+                }
+                
+                const booking = await bookingResponse.json();
+                
+                // Create payment
+                const totalPrice = paymentData.schedule.fare ? 
+                    parseFloat(paymentData.schedule.fare) * (paymentData.count || 1) : 0;
+                
+                const paymentDataToStore = {
+                    bookingId: booking.bookingId,
+                    paymentMethod: selectedPaymentMethod,
+                    paymentStatus: 'Paid',
+                    totalPrice: totalPrice
+                };
+                
+                const paymentResponse = await fetch('/api/payments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(paymentDataToStore)
+                });
+                
+                if (!paymentResponse.ok) {
+                    throw new Error('Failed to create payment');
+                }
+                
+                const payment = await paymentResponse.json();
+                
+                // Store booking confirmation
+                const bookingConfirmation = {
+                    ...paymentData,
+                    passenger: passengerData,
+                    booking: booking,
+                    payment: payment,
+                    bookingId: booking.bookingId,
+                    bookingDate: new Date().toISOString().split('T')[0]
+                };
+                
+                localStorage.setItem('bookingConfirmation', JSON.stringify(bookingConfirmation));
+                
+                // Clear temporary data
+                localStorage.removeItem('passengerData');
+                localStorage.removeItem('paymentData');
+                
+                // Auto-save card if checkbox is checked
+                const shouldSaveCard = document.getElementById('saveCardCheckbox').checked;
+                const userId = currentUser ? currentUser.id : (passengerData.userId || null);
+                if (shouldSaveCard && userId) {
+                    const cardHolderName = document.getElementById('cardHolderName').value.trim();
+                    const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '').trim();
+                    const expiryDate = document.getElementById('expiryDate').value.trim();
+                    try {
+                        await fetch('/api/saved-cards', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId, cardHolderName, cardNumber, cardType: selectedPaymentMethod, expiryDate })
+                        });
+                    } catch (cardErr) {
+                        console.error('Error auto-saving payment card:', cardErr);
+                    }
+                }
+
+                // Show success modal
+                showSuccessModal(booking, payment, bookingConfirmation);
+                
+            } catch (error) {
+                console.error('Error processing payment:', error);
+                showMessage('Payment failed: ' + error.message, 'error');
+                payButton.disabled = false;
+                payButton.textContent = 'Complete Payment';
+            }
+        }
+
+        function showMessage(message, type) {
+            const container = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'error' ? 'error' : 'success';
+            messageDiv.textContent = message;
+            
+            container.innerHTML = '';
+            container.appendChild(messageDiv);
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.remove();
+                }, 5000);
+            }
+        }
+
+        function showSuccessModal(booking, payment, bookingConfirmation) {
+            // Populate modal with booking details
+            document.getElementById('modalBookingId').textContent = booking.bookingId;
+            document.getElementById('modalPassengerName').textContent = `${passengerData.firstName} ${passengerData.lastName}`;
+            document.getElementById('modalRoute').textContent = `${paymentData.schedule.route?.fromStand || 'N/A'} → ${paymentData.schedule.route?.toStand || 'N/A'}`;
+            document.getElementById('modalDateTime').textContent = `${paymentData.schedule.travelDate || 'N/A'} at ${paymentData.schedule.startTime || 'N/A'}`;
+            document.getElementById('modalAmount').textContent = `Rs. ${payment.totalPrice}`;
+            
+            // Show the modal
+            const modal = document.getElementById('successModal');
+            modal.classList.add('show');
+            
+            // Setup modal button event listeners
+            setupModalButtons(booking, payment, bookingConfirmation);
+            
+            // Start countdown
+            startCountdown();
+        }
+
+        function setupModalButtons(booking, payment, bookingConfirmation) {
+            // Download ticket button
+            document.getElementById('downloadTicketBtn').onclick = () => {
+                generateConfirmationPDF(booking, payment, bookingConfirmation);
+            };
+            
+            // Go home button
+            document.getElementById('goHomeBtn').onclick = () => {
+                window.location.href = 'index.html';
+            };
+        }
+
+        function startCountdown() {
+            let countdown = 10;
+            const countdownElement = document.getElementById('countdownNumber');
+            const countdownContainer = document.getElementById('countdown');
+            
+            const timer = setInterval(() => {
+                countdown--;
+                countdownElement.textContent = countdown;
+                
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    countdownContainer.style.display = 'none';
+                    window.location.href = 'index.html';
+                }
+            }, 1000);
+        }
+
+        function generateConfirmationPDF(booking, payment, bookingConfirmation) {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Set font
+                doc.setFont("helvetica");
+                
+                // Header with company branding
+                doc.setFillColor(34, 197, 94);
+                doc.rect(0, 0, 210, 30, 'F');
+                
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(24);
+                doc.text('🚌 Bus Reservation', 20, 20);
+                
+                // E-Ticket title
+                doc.setFontSize(18);
+                doc.setTextColor(0, 0, 0);
+                doc.text('E-TICKET', 20, 45);
+                
+                // Line separator
+                doc.setDrawColor(34, 197, 94);
+                doc.setLineWidth(1);
+                doc.line(20, 50, 190, 50);
+                
+                // Booking details in a more ticket-like format
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Booking ID: ${booking.bookingId}`, 20, 65);
+                doc.text(`Payment ID: ${payment.paymentId}`, 20, 75);
+                doc.text(`Issue Date: ${bookingConfirmation.bookingDate}`, 20, 85);
+                
+                // Passenger Details Section
+                doc.setFontSize(16);
+                doc.setTextColor(34, 197, 94);
+                doc.text('Passenger Details', 20, 90);
+                
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Name: ${passengerData.firstName} ${passengerData.lastName}`, 20, 105);
+                doc.text(`Email: ${passengerData.email}`, 20, 115);
+                doc.text(`Phone: ${passengerData.phone}`, 20, 125);
+                doc.text(`NIC: ${passengerData.nic}`, 20, 135);
+                
+                // Trip Details Section
+                doc.setFontSize(16);
+                doc.setTextColor(34, 197, 94);
+                doc.text('Trip Details', 20, 155);
+                
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                const schedule = paymentData.schedule;
+                doc.text(`Route: ${schedule.route?.fromStand || 'N/A'} → ${schedule.route?.toStand || 'N/A'}`, 20, 170);
+                doc.text(`Date: ${schedule.travelDate || 'N/A'}`, 20, 180);
+                doc.text(`Time: ${schedule.startTime || 'N/A'} - ${schedule.endTime || 'N/A'}`, 20, 190);
+                doc.text(`Bus: ${schedule.bus?.registrationNo || 'N/A'}`, 20, 200);
+                doc.text(`Tickets: ${paymentData.count || 1}`, 20, 210);
+                
+                // Payment Details Section
+                doc.setFontSize(16);
+                doc.setTextColor(34, 197, 94);
+                doc.text('Payment Details', 20, 230);
+                
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Payment Method: ${payment.paymentMethod}`, 20, 245);
+                doc.text(`Payment Status: ${payment.paymentStatus}`, 20, 255);
+                doc.text(`Total Amount: Rs. ${payment.totalPrice}`, 20, 265);
+                
+                // Check if we need a new page for Important Notes
+                let currentY = 280;
+                const pageHeight = 280; // A4 page height minus margins
+                
+                if (currentY > pageHeight - 100) {
+                    doc.addPage();
+                    currentY = 20;
+                }
+                
+                // Important Notes Section
+                doc.setFontSize(16);
+                doc.setTextColor(239, 68, 68); // Red color for important notes
+                doc.text('Important Notes', 20, currentY);
+                currentY += 15;
+                
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                const notes = [
+                    '• Please arrive at the bus station 15 minutes before departure time.',
+                    '• Bring a valid ID proof for verification.',
+                    '• Keep this confirmation document safe for your records.',
+                    '',
+                    'CANCELLATION POLICY:',
+                    '• To cancel your reservation and request a refund, please:',
+                    '  1. Create a user account by registering on our system',
+                    '  2. Login to your account',
+                    '  3. Navigate to "My Bookings" section',
+                    '  4. Select this booking and proceed with cancellation',
+                    '• Refund will be processed within 5-7 business days',
+                    '• Cancellation charges may apply as per policy'
+                ];
+                
+                notes.forEach(note => {
+                    // Check if we need a new page
+                    if (currentY > pageHeight - 20) {
+                        doc.addPage();
+                        currentY = 20;
+                    }
+                    
+                    doc.text(note, 20, currentY);
+                    currentY += 8;
+                });
+                
+                // Footer
+                if (currentY > pageHeight - 30) {
+                    doc.addPage();
+                    currentY = 20;
+                }
+                
+                doc.setFontSize(8);
+                doc.setTextColor(100, 100, 100);
+                doc.text('Thank you for choosing our bus service!', 20, currentY);
+                doc.text('For support, contact us at support@busreservation.com', 20, currentY + 10);
+                
+                // Save the PDF
+                const fileName = `E-Ticket_${booking.bookingId}_${passengerData.firstName}_${passengerData.lastName}.pdf`;
+                doc.save(fileName);
+                
+                // Show confirmation message (this will be overridden by the main success flow)
+                console.log('PDF generated successfully');
+                
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                showMessage('Error generating confirmation document', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

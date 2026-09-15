@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>IT Support Dashboard | LankaRide</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+	<link rel="stylesheet" href="css/srilanka-travel.css" />
+</head>
+<body class="lk-travel lk-admin-page staff-page">
+	<div class="topbar staff-topbar">
+		<div class="staff-topbar-title">
+			<strong>IT Support Dashboard</strong>
+			<span>Manage system users, access privileges and IT operations.</span>
+		</div>
+		<div class="staff-topbar-actions">
+			<span class="staff-user-chip"><i class="bi bi-shield-lock"></i> IT Support</span>
+			<a class="button secondary" href="index.html"><i class="bi bi-globe2"></i> View Website</a>
+			<button id="signout" class="button" type="button"><i class="bi bi-box-arrow-right"></i> Sign Out</button>
+		</div>
+	</div>
+	<div class="layout staff-shell">
+		<aside class="sidebar staff-sidebar">
+			<div class="staff-sidebar-brand">
+				<div class="brand-line"><i class="bi bi-bus-front"></i><span>LankaRide</span></div>
+				<small>Staff Portal</small>
+			</div>
+			<div class="staff-role-badge">IT Support</div>
+			<ul class="menu staff-nav">
+				<li><a class="active" href="itdashboard.html"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+				<li><a href="admin-users.html"><i class="bi bi-people"></i> User Management</a></li>
+				<li><a href="index.html"><i class="bi bi-arrow-left-circle"></i> Return to Website</a></li>
+			</ul>
+		</aside>
+		<main class="content staff-main">
+			<section class="staff-page-header">
+				<div>
+					<div class="staff-breadcrumb">Staff Portal / IT Support</div>
+					<h1>IT Support Dashboard</h1>
+					<p>Manage passenger and staff accounts for the bus ticket reservation system.</p>
+				</div>
+				<a class="button" href="admin-users.html"><i class="bi bi-person-plus"></i> Manage Users</a>
+			</section>
+
+			<section class="lk-admin-stat-grid three">
+				<div class="lk-admin-stat"><span>Total Users</span><strong id="userCount">0</strong></div>
+				<div class="lk-admin-stat"><span>Passengers</span><strong id="passengerCount">0</strong></div>
+				<div class="lk-admin-stat"><span>Staff</span><strong id="staffCount">0</strong></div>
+			</section>
+
+			<section class="staff-content-grid">
+				<div class="staff-panel">
+					<div class="staff-panel-header">
+						<div>
+							<h2>Quick Actions</h2>
+							<p>Manage access control and system accounts.</p>
+						</div>
+					</div>
+					<div class="staff-quick-list">
+						<a class="staff-action" href="admin-users.html"><i class="bi bi-people"></i><span><strong>User Management</strong><span>Create, update, search, and delete system users.</span></span><i class="bi bi-arrow-right"></i></a>
+						<a class="staff-action" href="index.html"><i class="bi bi-globe2"></i><span><strong>Return to Website</strong><span>Open the public LankaRide web application.</span></span><i class="bi bi-arrow-right"></i></a>
+					</div>
+				</div>
+			</section>
+		</main>
+	</div>
+	<script>
+		fetch('/api/users').then(res => res.json()).then(users => {
+			const passengers = users.filter(user => user.role === 'Passenger').length;
+			document.getElementById('userCount').textContent = users.length;
+			document.getElementById('passengerCount').textContent = passengers;
+			document.getElementById('staffCount').textContent = users.length - passengers;
+		}).catch(console.error);
+
+		document.getElementById('signout').addEventListener('click', () => {
+			localStorage.removeItem('currentUser');
+			window.location.href = 'login.html';
+		});
+	</script>
+</body>
+</html>
+

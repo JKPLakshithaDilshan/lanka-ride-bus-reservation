@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Schedule Management | LankaRide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/srilanka-travel.css" />
+    <style>
+        :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --primary:#22c55e; --primary-600:#16a34a; --input:#1f2937; --ring:rgba(34,197,94,.35); }
+        html,body{height:100%}
+        body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica Neue,Arial;color:var(--text);background:linear-gradient(0deg,#0b1220,var(--bg));}
+        .container{max-width:1100px;margin:32px auto;padding:0 16px;}
+        .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+        .h1{font-size:22px;margin:0}
+        .toolbar{display:flex;gap:8px}
+        .input{padding:10px 12px;border-radius:10px;border:1px solid rgba(148,163,184,.25);background:var(--input);color:var(--text);outline:none}
+        .table{width:100%;border-collapse:separate;border-spacing:0 8px}
+        .tr{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));backdrop-filter:blur(8px);border:1px solid rgba(148,163,184,.15)}
+        .tr td,.tr th{padding:12px 10px}
+        .tr th{color:var(--muted);font-weight:600;text-align:left}
+        .actions{display:flex;gap:8px}
+        .button{appearance:none;border:0;padding:10px 12px;border-radius:10px;background:linear-gradient(180deg,var(--primary),var(--primary-600));color:#fff;font-weight:600;cursor:pointer}
+        .button.secondary{background:#334155}
+        .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#334155;color:#e5e7eb;font-size:12px}
+        .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center}
+        .modal .card{width:100%;max-width:620px;background:#ffffff;border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:20px;color:#0f172a}
+        .grid{display:grid;gap:12px}
+        .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .label{font-size:13px;color:#334155}
+        .hint{font-size:12px;color:#64748b}
+        .error{color:#ef4444;font-size:12px;margin-top:4px;display:block}
+        .input.error{border-color:#ef4444;box-shadow:0 0 0 4px rgba(239,68,68,.2)}
+        .input.success{border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.2)}
+        .validation-summary{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:12px;margin-bottom:16px;display:none}
+        .validation-summary.show{display:block}
+        .validation-summary ul{margin:0;padding-left:20px}
+        .validation-summary li{color:#ef4444;font-size:14px;margin-bottom:4px}
+    </style>
+</head>
+<body class="lk-travel lk-admin-page staff-page">
+    <div class="topbar staff-topbar">
+        <div class="staff-topbar-title">
+            <strong>Schedule Management</strong>
+            <span>Assign buses to routes and manage service dates and times.</span>
+        </div>
+        <div class="staff-topbar-actions">
+            <span class="staff-user-chip"><i class="bi bi-diagram-3"></i> Operations</span>
+            <a class="button secondary" href="index.html"><i class="bi bi-globe2"></i> View Website</a>
+        </div>
+    </div>
+    <div class="layout staff-shell">
+        <aside class="sidebar staff-sidebar">
+            <div class="staff-sidebar-brand">
+                <div class="brand-line"><i class="bi bi-bus-front"></i><span>LankaRide</span></div>
+                <small>Staff Portal</small>
+            </div>
+            <div class="staff-role-badge">Operations</div>
+            <ul class="menu staff-nav">
+                <li><a href="operationdashboard.html"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                <li><a href="bus.html"><i class="bi bi-bus-front"></i> Bus Management</a></li>
+                <li><a href="route.html"><i class="bi bi-signpost-split"></i> Route Management</a></li>
+                <li><a class="active" href="schedule.html"><i class="bi bi-calendar3"></i> Schedule Management</a></li>
+                <li><a href="index.html"><i class="bi bi-arrow-left-circle"></i> Return to Website</a></li>
+            </ul>
+        </aside>
+        <main class="content staff-main">
+            <section class="staff-page-header">
+                <div>
+                    <div class="staff-breadcrumb">Staff Portal / Operations / Schedules</div>
+                    <h1>Schedule Management</h1>
+                    <p>Assign buses to routes and manage service dates and times.</p>
+                </div>
+                <button class="button" id="add"><i class="bi bi-plus-lg"></i> Add Schedule</button>
+            </section>
+
+            <section class="staff-panel">
+                <div class="staff-toolbar">
+                    <input id="search" class="input staff-input" placeholder="Search by bus registration number or route" />
+                    <button class="button secondary" id="refresh"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                </div>
+                <div class="staff-table-wrapper">
+                    <table class="table staff-data-table">
+                        <thead class="tr">
+                            <tr>
+                                <th>Schedule ID</th>
+                                <th>Bus Registration</th>
+                                <th>Route</th>
+                                <th>Date</th>
+                                <th>Departure</th>
+                                <th>Arrival</th>
+                                <th>Fare / Passenger</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="modal" class="modal hidden">
+        <div class="card">
+            <h3 id="modalTitle" style="margin-top:0">Add Schedule</h3>
+            <div id="scheduleValidationSummary" class="validation-summary">
+                <strong>Please fix the following errors:</strong>
+                <ul id="scheduleValidationErrors"></ul>
+            </div>
+            <div class="grid">
+                <div class="row">
+                    <div>
+                        <div class="label">Bus Registration Number</div>
+                        <select id="bus" class="input"></select>
+                        <span id="busError" class="error"></span>
+                    </div>
+                    <div>
+                        <div class="label">From - To</div>
+                        <select id="route" class="input"></select>
+                        <span id="routeError" class="error"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div>
+                        <div class="label">Date</div>
+                        <input id="date" class="input" type="date" />
+                        <span id="dateError" class="error"></span>
+                    </div>
+                    <div>
+                        <div class="label">Fare per Passenger (Rs.)</div>
+                        <input id="fare" class="input" type="number" min="0.01" max="99999999.99" step="0.01" placeholder="250.00" />
+                        <span id="fareError" class="error"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div>
+                        <div class="label">Start Time</div>
+                        <input id="start" class="input" type="time" />
+                        <span id="startError" class="error"></span>
+                    </div>
+                    <div>
+                        <div class="label">End Time</div>
+                        <input id="end" class="input" type="time" />
+                        <span id="endError" class="error"></span>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+                <button class="button secondary" id="cancel">Cancel</button>
+                <button class="button" id="save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal hidden">
+        <div class="card">
+            <h3 style="margin-top:0">Delete Schedule</h3>
+            <div id="deleteDetails" style="margin:8px 0 12px;color:#334155"></div>
+            <div id="deleteMessage" style="margin:8px 0 12px; display:none; color:#b91c1c; font-weight:600">Are you sure you want to delete?</div>
+            <div id="deleteActions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+                <button class="button secondary" id="deleteCancel">Cancel</button>
+                <button class="button" id="deletePrompt">Delete</button>
+            </div>
+            <div id="confirmActions" style="display:none;gap:8px;justify-content:flex-end;margin-top:16px">
+                <button class="button secondary" id="deleteNo">No</button>
+                <button class="button" id="deleteYes">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:8080/api/schedules';
+        const BUS_API = 'http://localhost:8080/api/buses';
+        const ROUTE_API = 'http://localhost:8080/api/routes';
+
+        const tbody = document.getElementById('tbody');
+        const modal = document.getElementById('modal');
+        const deleteModal = document.getElementById('deleteModal');
+        let current = null;
+        let deleteTarget = null;
+        let buses = [];
+        let routes = [];
+
+        // Initialize validation on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            setupScheduleValidation();
+        });
+
+        document.getElementById('refresh').addEventListener('click', loadAll);
+        document.getElementById('add').addEventListener('click', openAdd);
+        document.getElementById('cancel').addEventListener('click', () => {
+            modal.classList.add('hidden');
+            clearScheduleValidationErrors();
+        });
+        document.getElementById('save').addEventListener('click', save);
+        document.getElementById('search').addEventListener('input', filter);
+
+        document.getElementById('deleteCancel').addEventListener('click', ()=>{ deleteModal.classList.add('hidden'); deleteTarget=null; });
+        document.getElementById('deletePrompt').addEventListener('click', ()=>{
+            document.getElementById('deleteMessage').style.display = 'block';
+            document.getElementById('deleteActions').style.display = 'none';
+            document.getElementById('confirmActions').style.display = 'flex';
+        });
+        document.getElementById('deleteNo').addEventListener('click', ()=>{
+            document.getElementById('deleteMessage').style.display = 'none';
+            document.getElementById('deleteActions').style.display = 'flex';
+            document.getElementById('confirmActions').style.display = 'none';
+        });
+        document.getElementById('deleteYes').addEventListener('click', async ()=>{
+            if(!deleteTarget) return;
+            const res = await fetch(`${API}/${deleteTarget.scheduleId}`, { method: 'DELETE' });
+            if(res.ok){ deleteModal.classList.add('hidden'); deleteTarget=null; loadAll(); }
+            else{ alert('Delete failed'); }
+        });
+
+        loadAll();
+
+        // Validation functions
+        function validateBus(busId) {
+            if (!busId || busId === '') {
+                return 'Bus selection is required';
+            }
+            return null;
+        }
+
+        function validateRoute(routeId) {
+            if (!routeId || routeId === '') {
+                return 'Route selection is required';
+            }
+            return null;
+        }
+
+        function validateDate(date) {
+            if (!date) {
+                return 'Date is required';
+            }
+            if (date < getTodayDate()) {
+                return 'Date cannot be in the past';
+            }
+            return null;
+        }
+
+        function getTodayDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function validateStartTime(startTime) {
+            if (!startTime) {
+                return 'Start time is required';
+            }
+            return null;
+        }
+
+        function validateEndTime(endTime) {
+            if (!endTime) {
+                return 'End time is required';
+            }
+            return null;
+        }
+
+        function validateFare(fare) {
+            if (!fare) {
+                return 'Fare is required';
+            }
+            const amount = Number(fare);
+            if (!Number.isFinite(amount) || amount <= 0) {
+                return 'Fare must be greater than zero';
+            }
+            if (!/^\d+(\.\d{1,2})?$/.test(fare)) {
+                return 'Fare must have at most 2 decimal places';
+            }
+            return null;
+        }
+
+        function validateTimeRange(startTime, endTime) {
+            if (startTime && endTime) {
+                const start = new Date(`2000-01-01T${startTime}`);
+                const end = new Date(`2000-01-01T${endTime}`);
+                
+                if (end <= start) {
+                    return 'End time must be after start time';
+                }
+            }
+            return null;
+        }
+
+        function setupScheduleValidation() {
+            const inputs = [
+                { id: 'bus', validator: validateBus, errorId: 'busError' },
+                { id: 'route', validator: validateRoute, errorId: 'routeError' },
+                { id: 'date', validator: validateDate, errorId: 'dateError' },
+                { id: 'start', validator: validateStartTime, errorId: 'startError' },
+                { id: 'end', validator: validateEndTime, errorId: 'endError' },
+                { id: 'fare', validator: validateFare, errorId: 'fareError' }
+            ];
+
+            inputs.forEach(({ id, validator, errorId }) => {
+                const input = document.getElementById(id);
+                const errorElement = document.getElementById(errorId);
+
+                // Real-time validation on change
+                input.addEventListener('change', () => {
+                    validateScheduleField(input, validator, errorElement);
+                });
+
+                // Validation on blur
+                input.addEventListener('blur', () => {
+                    validateScheduleField(input, validator, errorElement);
+                });
+            });
+
+            // Special validation for time range
+            document.getElementById('start').addEventListener('change', validateTimeRangeFields);
+            document.getElementById('end').addEventListener('change', validateTimeRangeFields);
+        }
+
+        function validateScheduleField(input, validator, errorElement) {
+            const error = validator(input.value);
+            if (error) {
+                input.classList.add('error');
+                input.classList.remove('success');
+                errorElement.textContent = error;
+            } else {
+                input.classList.remove('error');
+                input.classList.add('success');
+                errorElement.textContent = '';
+            }
+        }
+
+        function validateTimeRangeFields() {
+            const startTime = document.getElementById('start').value;
+            const endTime = document.getElementById('end').value;
+            const endErrorElement = document.getElementById('endError');
+            
+            const timeRangeError = validateTimeRange(startTime, endTime);
+            if (timeRangeError) {
+                document.getElementById('end').classList.add('error');
+                document.getElementById('end').classList.remove('success');
+                endErrorElement.textContent = timeRangeError;
+            } else if (endTime) {
+                document.getElementById('end').classList.remove('error');
+                document.getElementById('end').classList.add('success');
+                endErrorElement.textContent = '';
+            }
+        }
+
+        function validateScheduleForm() {
+            const busId = document.getElementById('bus').value;
+            const routeId = document.getElementById('route').value;
+            const date = document.getElementById('date').value;
+            const startTime = document.getElementById('start').value;
+            const endTime = document.getElementById('end').value;
+            
+            const inputs = [
+                { id: 'bus', validator: validateBus, errorId: 'busError' },
+                { id: 'route', validator: validateRoute, errorId: 'routeError' },
+                { id: 'date', validator: validateDate, errorId: 'dateError' },
+                { id: 'start', validator: validateStartTime, errorId: 'startError' },
+                { id: 'end', validator: validateEndTime, errorId: 'endError' },
+                { id: 'fare', validator: validateFare, errorId: 'fareError' }
+            ];
+
+            const errors = [];
+            let isValid = true;
+
+            inputs.forEach(({ id, validator, errorId }) => {
+                const input = document.getElementById(id);
+                const errorElement = document.getElementById(errorId);
+                const error = validator(input.value);
+                
+                if (error) {
+                    input.classList.add('error');
+                    input.classList.remove('success');
+                    errorElement.textContent = error;
+                    errors.push(error);
+                    isValid = false;
+                } else {
+                    input.classList.remove('error');
+                    input.classList.add('success');
+                    errorElement.textContent = '';
+                }
+            });
+
+            // Check time range
+            const timeRangeError = validateTimeRange(startTime, endTime);
+            if (timeRangeError) {
+                errors.push(timeRangeError);
+                isValid = false;
+            }
+
+            // Show validation summary if there are errors
+            const validationSummary = document.getElementById('scheduleValidationSummary');
+            const validationErrors = document.getElementById('scheduleValidationErrors');
+            
+            if (!isValid) {
+                validationErrors.innerHTML = errors.map(error => `<li>${error}</li>`).join('');
+                validationSummary.classList.add('show');
+            } else {
+                validationSummary.classList.remove('show');
+            }
+
+            return isValid;
+        }
+
+        function clearScheduleValidationErrors() {
+            const inputs = ['bus', 'route', 'date', 'start', 'end', 'fare'];
+            const errorIds = ['busError', 'routeError', 'dateError', 'startError', 'endError', 'fareError'];
+
+            inputs.forEach((inputId, index) => {
+                const input = document.getElementById(inputId);
+                const errorElement = document.getElementById(errorIds[index]);
+                
+                input.classList.remove('error', 'success');
+                errorElement.textContent = '';
+            });
+
+            // Hide validation summary
+            const validationSummary = document.getElementById('scheduleValidationSummary');
+            validationSummary.classList.remove('show');
+        }
+
+        async function loadAll() {
+            const [sRes, bRes, rRes] = await Promise.all([
+                fetch(API), fetch(BUS_API), fetch(ROUTE_API)
+            ]);
+            const [schedules, busData, routeData] = await Promise.all([
+                sRes.json(), bRes.json(), rRes.json()
+            ]);
+            buses = busData;
+            routes = routeData;
+            render(schedules);
+        }
+
+        function render(schedules) {
+            tbody.innerHTML = '';
+            if (!schedules.length) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9">
+                            <div class="staff-empty-state">No schedules found.</div>
+                        </td>
+                    </tr>`;
+                return;
+            }
+            for (const s of schedules) {
+                const tr = document.createElement('tr');
+                tr.className = 'tr';
+                const bus = s.bus || {};
+                const route = s.route || {};
+                const label = route.fromStand && route.toStand ? `${route.fromStand} - ${route.toStand}` : '';
+                tr.innerHTML = `
+                    <td>${s.scheduleId}</td>
+                    <td><span class="badge">${bus.registrationNo||''}</span></td>
+                    <td>${label}</td>
+                    <td>${s.travelDate||''}</td>
+                    <td>${s.startTime||''}</td>
+                    <td>${s.endTime||''}</td>
+                    <td>${s.fare != null ? `Rs. ${Number(s.fare).toFixed(2)}` : 'Not set'}</td>
+                    <td><span class="staff-status-badge success">Scheduled</span></td>
+                    <td class="actions">
+                        <button class="button secondary small" data-action="edit" data-id="${s.scheduleId}" aria-label="Edit schedule ${s.scheduleId}"><i class="bi bi-pencil"></i> Edit</button>
+                        <button class="button danger small" data-action="delete" data-id="${s.scheduleId}" aria-label="Delete schedule ${s.scheduleId}"><i class="bi bi-trash"></i> Delete</button>
+                    </td>`;
+                tr.querySelector('button[data-action="edit"]').addEventListener('click', () => openEdit(s));
+                tr.querySelector('button[data-action="delete"]').addEventListener('click', () => openDelete(s));
+                tbody.appendChild(tr);
+            }
+        }
+
+        function openAdd() {
+            current = null;
+            document.getElementById('modalTitle').textContent = 'Add Schedule';
+            fillSelects();
+            document.getElementById('bus').value = '';
+            document.getElementById('route').value = '';
+            const dateInput = document.getElementById('date');
+            dateInput.min = getTodayDate();
+            dateInput.value = '';
+            document.getElementById('start').value = '';
+            document.getElementById('end').value = '';
+            document.getElementById('fare').value = '';
+            clearScheduleValidationErrors();
+            modal.classList.remove('hidden');
+        }
+
+        function openEdit(s) {
+            current = s;
+            document.getElementById('modalTitle').textContent = 'Edit Schedule';
+            fillSelects();
+            document.getElementById('bus').value = s.bus?.busId ?? '';
+            document.getElementById('route').value = s.route?.routeId ?? '';
+            const dateInput = document.getElementById('date');
+            dateInput.removeAttribute('min');
+            dateInput.value = s.travelDate || '';
+            document.getElementById('start').value = s.startTime || '';
+            document.getElementById('end').value = s.endTime || '';
+            document.getElementById('fare').value = s.fare ?? '';
+            clearScheduleValidationErrors();
+            modal.classList.remove('hidden');
+        }
+
+        function fillSelects() {
+            const busSel = document.getElementById('bus');
+            const routeSel = document.getElementById('route');
+            busSel.innerHTML = '<option value="">Select bus</option>' + buses.map(b => `<option value="${b.busId}">${b.registrationNo}</option>`).join('');
+            routeSel.innerHTML = '<option value="">Select route</option>' + routes.map(r => `<option value="${r.routeId}">${r.fromStand} - ${r.toStand}</option>`).join('');
+        }
+
+        async function save() {
+            // Validate form before submission
+            if (!validateScheduleForm()) {
+                return;
+            }
+
+            const busId = parseInt(document.getElementById('bus').value, 10);
+            const routeId = parseInt(document.getElementById('route').value, 10);
+            const travelDate = document.getElementById('date').value;
+            const startTime = document.getElementById('start').value;
+            const endTime = document.getElementById('end').value;
+            const fare = Number(document.getElementById('fare').value).toFixed(2);
+
+            const payload = { busId, routeId, travelDate, startTime, endTime, fare };
+
+            if (!current) {
+                const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!res.ok) { const error = await res.text(); alert('Create failed: ' + error); return; }
+            } else {
+                const res = await fetch(`${API}/${current.scheduleId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!res.ok) { const error = await res.text(); alert('Update failed: ' + error); return; }
+            }
+            modal.classList.add('hidden');
+            loadAll();
+        }
+
+        function filter() {
+            const q = document.getElementById('search').value.toLowerCase();
+            for (const tr of tbody.children) {
+                const text = tr.innerText.toLowerCase();
+                tr.style.display = text.includes(q) ? '' : 'none';
+            }
+        }
+
+        function openDelete(s){
+            deleteTarget = s;
+            const label = s.route?.fromStand && s.route?.toStand ? `${s.route.fromStand} - ${s.route.toStand}` : '';
+            document.getElementById('deleteDetails').innerHTML = `
+                <div><strong>Schedule ID:</strong> ${s.scheduleId}</div>
+                <div><strong>Bus:</strong> ${s.bus?.registrationNo||''}</div>
+                <div><strong>Route:</strong> ${label}</div>
+                <div><strong>Date:</strong> ${s.travelDate||''}</div>
+                <div><strong>Start:</strong> ${s.startTime||''}</div>
+                <div><strong>End:</strong> ${s.endTime||''}</div>
+            `;
+            document.getElementById('deleteMessage').style.display = 'none';
+            document.getElementById('deleteActions').style.display = 'flex';
+            document.getElementById('confirmActions').style.display = 'none';
+            deleteModal.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

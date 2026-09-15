@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Profile | LankaRide</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+	<link rel="stylesheet" href="css/srilanka-travel.css" />
+</head>
+<body class="lk-travel lk-home-page profile-page">
+	<div class="lr-topbar">
+		<div class="container-xl d-flex align-items-center justify-content-between gap-3">
+			<a href="feedback.html" class="lr-help-link">Need help booking?</a>
+			<div class="d-flex align-items-center gap-3">
+				<span>English</span>
+				<div class="lr-accessibility" aria-label="Font size controls">
+					<button type="button" aria-label="Decrease font size">A-</button>
+					<button type="button" aria-label="Default font size">A</button>
+					<button type="button" aria-label="Increase font size">A+</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<nav class="navbar lr-navbar sticky-top" id="mainNavbar">
+		<div class="container-xl">
+			<a class="navbar-brand lr-brand" href="index.html" aria-label="LankaRide home">
+				<span class="lr-brand-mark"><i class="bi bi-bus-front"></i></span>
+				<span>LankaRide</span>
+			</a>
+			<div class="d-flex align-items-center gap-4">
+				<ul class="navbar-nav flex-row mb-0 lr-nav-links">
+					<li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+					<li class="nav-item"><a class="nav-link" href="booking.html">Journeys</a></li>
+					<li class="nav-item"><a class="nav-link" href="profile.html">Tickets</a></li>
+					<li class="nav-item"><a class="nav-link" href="feedback.html">Support</a></li>
+					<li class="nav-item"><a class="nav-link active" href="profile.html">Profile</a></li>
+				</ul>
+				<div class="d-flex align-items-center gap-2 lr-auth-actions">
+					<div class="notification-wrapper hidden" id="notificationWrapper">
+						<button id="notificationBell" class="btn lr-icon-btn notification-trigger" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="notificationDropdown">
+							<i class="bi bi-bell"></i>
+							<span id="notificationBadge" class="notification-badge hidden">0</span>
+						</button>
+						<div id="notificationDropdown" class="notification-dropdown hidden" aria-live="polite">
+							<div class="notification-header">
+								<h3>Notifications</h3>
+								<button type="button" class="mark-all-read" id="markAllRead" disabled>Mark all as read</button>
+							</div>
+							<div class="notification-list" id="notificationList">
+								<div class="notification-empty">
+									<i class="bi bi-bell-slash"></i>
+									<strong>You're all caught up</strong>
+									<span>New booking and support updates will appear here.</span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<button id="navSignout" class="btn btn-outline-secondary" type="button">Sign out</button>
+				</div>
+			</div>
+		</div>
+	</nav>
+
+	<main class="profile-main">
+		<div class="profile-shell">
+			<div id="messageContainer"></div>
+
+			<section class="profile-summary">
+				<div class="profile-summary-left">
+					<div class="profile-avatar" id="userInitials">P</div>
+					<div class="profile-identity">
+						<span class="profile-badge">Passenger Account</span>
+						<h1 id="userName">Loading...</h1>
+						<p id="userEmail">Loading...</p>
+						<span id="userPhone" class="profile-phone">Phone number loading...</span>
+					</div>
+				</div>
+				<div class="profile-summary-actions">
+					<button id="summaryEditBtn" class="btn profile-secondary-btn" type="button">
+						<i class="bi bi-pencil"></i>
+						<span>Edit Profile</span>
+					</button>
+					<a class="btn profile-primary-btn" href="booking.html">
+						<i class="bi bi-bus-front"></i>
+						<span>Book a Trip</span>
+					</a>
+				</div>
+			</section>
+
+			<section class="profile-stats" aria-label="Passenger account statistics">
+				<article class="profile-stat-card">
+					<div class="profile-stat-icon"><i class="bi bi-calendar-check"></i></div>
+					<div>
+						<span>Active Bookings</span>
+						<strong id="activeBookingCount">0</strong>
+						<p>No upcoming trips</p>
+					</div>
+				</article>
+				<article class="profile-stat-card">
+					<div class="profile-stat-icon"><i class="bi bi-ticket-perforated"></i></div>
+					<div>
+						<span>Total Tickets</span>
+						<strong id="ticketCount">0</strong>
+						<p>Seats reserved</p>
+					</div>
+				</article>
+				<article class="profile-stat-card">
+					<div class="profile-stat-icon pending"><i class="bi bi-arrow-counterclockwise"></i></div>
+					<div>
+						<span>Refund Requests</span>
+						<strong id="refundCount">0</strong>
+						<p>Pending refunds</p>
+					</div>
+				</article>
+				<article class="profile-stat-card">
+					<div class="profile-stat-icon pending"><i class="bi bi-chat-square-text"></i></div>
+					<div>
+						<span>Open Complaints</span>
+						<strong id="complaintCount">0</strong>
+						<p>Support cases</p>
+					</div>
+				</article>
+			</section>
+
+			<section class="profile-dashboard-grid">
+				<div class="profile-left-column">
+					<article class="profile-panel profile-details-card">
+						<div class="profile-panel-header">
+							<div>
+								<h2>Profile Details</h2>
+								<p>Your account information</p>
+							</div>
+							<button id="editToggle" class="btn profile-secondary-btn" type="button">
+								<i class="bi bi-pencil"></i>
+								<span>Edit Profile</span>
+							</button>
+						</div>
+
+						<div id="viewMode" class="profile-detail-list">
+							<div class="detail-row">
+								<span class="detail-label">First name</span>
+								<span class="detail-value" id="viewFirstName">-</span>
+							</div>
+							<div class="detail-row">
+								<span class="detail-label">Last name</span>
+								<span class="detail-value" id="viewLastName">-</span>
+							</div>
+							<div class="detail-row">
+								<span class="detail-label">Email</span>
+								<span class="detail-value" id="viewEmail">-</span>
+							</div>
+							<div class="detail-row">
+								<span class="detail-label">Phone</span>
+								<span class="detail-value" id="viewPhone">-</span>
+							</div>
+							<div class="detail-row">
+								<span class="detail-label">NIC number</span>
+								<span class="detail-value" id="viewNic">-</span>
+							</div>
+						</div>
+
+						<form id="editMode" class="form profile-edit-form hidden">
+							<div id="validationSummary" class="validation-summary">
+								<strong>Please fix the following errors:</strong>
+								<ul id="validationErrors"></ul>
+							</div>
+							<div class="profile-form-grid">
+								<div class="form-group">
+									<label class="label" for="editFirstName">First Name</label>
+									<input id="editFirstName" class="input" required />
+									<span id="firstNameError" class="error"></span>
+								</div>
+								<div class="form-group">
+									<label class="label" for="editLastName">Last Name</label>
+									<input id="editLastName" class="input" required />
+									<span id="lastNameError" class="error"></span>
+								</div>
+								<div class="form-group">
+									<label class="label" for="editEmail">Email</label>
+									<input id="editEmail" class="input" type="email" required />
+									<span id="emailError" class="error"></span>
+								</div>
+								<div class="form-group">
+									<label class="label" for="editPhone">Phone</label>
+									<input id="editPhone" class="input" type="tel" />
+									<span id="phoneError" class="error"></span>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="label" for="editNic">NIC Number</label>
+								<input id="editNic" class="input" required />
+								<span id="nicError" class="error"></span>
+							</div>
+							<div class="form-group">
+								<label class="label" for="editPassword">Change Password</label>
+								<input id="editPassword" class="input" type="password" placeholder="Leave blank to keep current" />
+								<span id="passwordError" class="error"></span>
+							</div>
+							<div class="profile-form-actions">
+								<button type="button" id="cancelEdit" class="btn profile-secondary-btn">Cancel</button>
+								<button type="submit" class="btn profile-primary-btn">Save Changes</button>
+							</div>
+						</form>
+					</article>
+
+					<article class="profile-panel profile-actions-card">
+						<div class="profile-panel-header">
+							<div>
+								<h2>Quick Actions</h2>
+								<p>Common passenger tasks</p>
+							</div>
+						</div>
+							<div class="profile-action-list">
+								<a href="booking.html"><i class="bi bi-search"></i><span>Search buses</span><i class="bi bi-chevron-right"></i></a>
+								<a href="feedback.html"><i class="bi bi-headset"></i><span>Contact support</span><i class="bi bi-chevron-right"></i></a>
+								<a href="profile.html"><i class="bi bi-ticket-detailed"></i><span>Manage tickets</span><i class="bi bi-chevron-right"></i></a>
+							</div>
+							<div id="deleteAccountSection" class="profile-danger-zone hidden">
+								<div>
+									<strong>Delete account</strong>
+									<p>Remove your profile and saved payment cards.</p>
+								</div>
+								<button id="deleteAccount" class="btn btn-outline-danger" type="button"><i class="bi bi-trash3"></i><span>Delete</span></button>
+							</div>
+						</article>
+				</div>
+
+				<div class="profile-right-column">
+					<article class="profile-panel profile-bookings-card">
+						<div class="profile-panel-header">
+							<div>
+								<h2>My Bookings</h2>
+								<p>Upcoming and recent journeys</p>
+							</div>
+							<a class="profile-text-action" href="booking.html">Search Buses <i class="bi bi-chevron-right"></i></a>
+						</div>
+						<div class="profile-tabs" aria-label="Booking filters">
+							<button class="active" type="button">Upcoming</button>
+							<button type="button">Completed</button>
+							<button type="button">Cancelled</button>
+						</div>
+						<div id="bookingsContainer">
+							<div class="loading">Loading your bookings...</div>
+						</div>
+					</article>
+
+					<article class="profile-panel profile-support-card">
+						<div class="profile-panel-header">
+							<div>
+								<h2>Support History</h2>
+								<p>Complaints, feedback and customer-service replies</p>
+							</div>
+							<a class="profile-text-action" href="feedback.html">Contact Support <i class="bi bi-chevron-right"></i></a>
+						</div>
+						<div id="complaintsContainer">
+							<div class="loading">Loading your complaints...</div>
+						</div>
+					</article>
+				</div>
+			</section>
+		</div>
+	</main>
+
+	<footer class="lr-footer profile-footer">
+		<div class="container-xl">
+			<div class="profile-footer-grid">
+				<div>
+					<h2>LankaRide</h2>
+					<p>Online bus ticket booking for intercity journeys across Sri Lanka.</p>
+				</div>
+				<div>
+					<h3>Support</h3>
+					<a href="feedback.html">Help centre</a>
+					<a href="profile.html">Manage booking</a>
+					<a href="profile.html">Refund policy</a>
+				</div>
+				<div>
+					<h3>Contact</h3>
+					<span>+94 11 234 5678</span>
+					<span>support@lankaride.lk</span>
+				</div>
+			</div>
+			<div class="lr-footer-bottom">
+				<span id="footerYear"></span>
+				<div>
+					<a href="index.html">Privacy Policy</a>
+					<a href="index.html">Terms and Conditions</a>
+				</div>
+			</div>
+		</div>
+	</footer>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script>
+		const API = 'http://localhost:8080/api/users';
+		const BOOKINGS_API = 'http://localhost:8080/api/bookings';
+		const FEEDBACK_API = 'http://localhost:8080/api/feedback';
+		const PAYMENTS_API = 'http://localhost:8080/api/payments';
+		let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+		let notificationDropdownVisible = false;
+		
+		if (!currentUser) { 
+			window.location.href = 'login.html'; 
+		}
+
+		document.addEventListener('DOMContentLoaded', () => {
+			loadUserProfile();
+			loadUserBookings();
+			loadUserComplaints();
+			setupEventListeners();
+			setupValidation();
+			document.getElementById('footerYear').textContent = `© ${new Date().getFullYear()} LankaRide`;
+
+				if (currentUser && currentUser.role && currentUser.role.toLowerCase() === 'passenger') {
+					document.getElementById('notificationWrapper').classList.remove('hidden');
+					document.getElementById('deleteAccountSection').classList.remove('hidden');
+				updateNotificationBadge();
+				setInterval(updateNotificationBadge, 30000);
+			}
+		});
+
+		function loadUserProfile() {
+			const fullName = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || 'Passenger';
+			document.getElementById('userName').textContent = fullName;
+			document.getElementById('userEmail').textContent = currentUser.email || '';
+			document.getElementById('userPhone').textContent = currentUser.phone ? currentUser.phone : 'Phone number not added';
+			document.getElementById('userInitials').textContent = getInitials(currentUser.firstName, currentUser.lastName);
+
+			document.getElementById('viewFirstName').textContent = currentUser.firstName || '-';
+			document.getElementById('viewLastName').textContent = currentUser.lastName || '-';
+			document.getElementById('viewEmail').textContent = currentUser.email || '-';
+			document.getElementById('viewPhone').textContent = currentUser.phone || '-';
+			document.getElementById('viewNic').textContent = currentUser.nic || '-';
+
+			document.getElementById('editFirstName').value = currentUser.firstName || '';
+			document.getElementById('editLastName').value = currentUser.lastName || '';
+			document.getElementById('editEmail').value = currentUser.email || '';
+			document.getElementById('editPhone').value = currentUser.phone || '';
+			document.getElementById('editNic').value = currentUser.nic || '';
+		}
+
+		function getInitials(firstName, lastName) {
+			const first = firstName ? firstName.charAt(0).toUpperCase() : '';
+			const last = lastName ? lastName.charAt(0).toUpperCase() : '';
+			return `${first}${last}` || 'P';
+		}
+
+		async function loadUserBookings() {
+			try {
+				const response = await fetch(`${BOOKINGS_API}/email/${currentUser.email}`);
+				if (response.ok) {
+					const bookings = await response.json();
+					const bookingsWithPayments = await Promise.all(
+						bookings.map(async (booking) => {
+							try {
+								const paymentResponse = await fetch(`${PAYMENTS_API}/booking/${booking.bookingId}`);
+								if (paymentResponse.ok) {
+									const payments = await paymentResponse.json();
+									booking.payment = payments.length > 0 ? payments[0] : null;
+								}
+							} catch (error) {
+								console.error('Error loading payment for booking:', booking.bookingId, error);
+							}
+							return booking;
+						})
+					);
+					displayBookings(bookingsWithPayments);
+				} else {
+					updateBookingStats([]);
+					document.getElementById('bookingsContainer').innerHTML = getEmptyBookingState();
+				}
+			} catch (error) {
+				console.error('Error loading bookings:', error);
+				updateBookingStats([]);
+				document.getElementById('bookingsContainer').innerHTML = '<div class="loading">Error loading bookings</div>';
+			}
+		}
+
+		async function loadUserComplaints() {
+			try {
+				const response = await fetch(`${FEEDBACK_API}/user/${currentUser.id}`, { credentials: 'same-origin' });
+				if (response.ok) {
+					const feedbacks = await response.json();
+					displayComplaints(feedbacks);
+				} else {
+					document.getElementById('complaintCount').textContent = '0';
+					document.getElementById('complaintsContainer').innerHTML = getEmptySupportState();
+				}
+			} catch (error) {
+				console.error('Error loading complaints:', error);
+				document.getElementById('complaintCount').textContent = '0';
+				document.getElementById('complaintsContainer').innerHTML = '<div class="loading">Error loading complaints</div>';
+			}
+		}
+
+		function displayBookings(bookings) {
+			const container = document.getElementById('bookingsContainer');
+			const activeBookings = bookings.filter(booking => {
+				const payment = booking.payment || {};
+				return payment.paymentStatus !== 'refund accepted';
+			});
+			updateBookingStats(activeBookings);
+			
+			if (activeBookings.length === 0) {
+				container.innerHTML = getEmptyBookingState();
+				return;
+			}
+
+			container.innerHTML = activeBookings.map(booking => {
+				const schedule = booking.schedule || {};
+				const route = schedule.route || {};
+				const bus = schedule.bus || {};
+				const payment = booking.payment || {};
+				let statusClass = 'confirmed';
+				let statusText = 'Confirmed';
+				if (payment.paymentStatus === 'refund requested') {
+					statusClass = 'refund-requested';
+					statusText = 'Refund Requested';
+				}
+				const showRefundButton = payment.paymentId && payment.paymentStatus !== 'refund requested';
+				
+				return `
+					<div class="booking-card">
+						<div class="booking-header">
+							<span class="booking-id">Booking #${booking.bookingId}</span>
+							<span class="booking-status ${statusClass}">${statusText}</span>
+						</div>
+						<div class="booking-route">${route.fromStand || 'N/A'} &rarr; ${route.toStand || 'N/A'}</div>
+						<div class="booking-details">
+							<div><i class="bi bi-calendar3"></i> ${schedule.travelDate || 'N/A'}</div>
+							<div><i class="bi bi-clock"></i> ${schedule.startTime || 'N/A'} - ${schedule.endTime || 'N/A'}</div>
+							<div><i class="bi bi-bus-front"></i> ${bus.registrationNo || 'N/A'}</div>
+							<div><i class="bi bi-ticket-perforated"></i> ${booking.bookedTickets || 1} ticket(s)</div>
+							<div><i class="bi bi-cash-stack"></i> Rs. ${schedule.fare || 'N/A'}</div>
+						</div>
+						<div class="booking-actions">
+							<a class="profile-secondary-btn btn" href="profile.html">View Details</a>
+							${showRefundButton ? `
+								<button class="refund-button" onclick="requestRefund(${booking.bookingId}, ${payment.paymentId})">
+									Request Refund
+								</button>
+							` : ''}
+						</div>
+					</div>
+				`;
+			}).join('');
+		}
+
+		function getEmptyBookingState() {
+			return `
+				<div class="profile-empty-state">
+					<div class="profile-empty-icon"><i class="bi bi-ticket-perforated"></i></div>
+					<h3>No active bookings</h3>
+					<p>Your upcoming journeys will appear here after you reserve a seat.</p>
+					<a class="btn profile-primary-btn" href="booking.html"><i class="bi bi-search"></i><span>Search Buses</span></a>
+				</div>
+			`;
+		}
+
+		function updateBookingStats(activeBookings) {
+			const totalTickets = activeBookings.reduce((sum, booking) => sum + (booking.bookedTickets || 0), 0);
+			const refundRequests = activeBookings.filter(booking => {
+				const payment = booking.payment || {};
+				return payment.paymentStatus === 'refund requested';
+			}).length;
+
+			document.getElementById('activeBookingCount').textContent = activeBookings.length;
+			document.getElementById('ticketCount').textContent = totalTickets;
+			document.getElementById('refundCount').textContent = refundRequests;
+		}
+
+		function displayComplaints(complaints) {
+			const container = document.getElementById('complaintsContainer');
+			document.getElementById('complaintCount').textContent = complaints.length;
+			
+			if (complaints.length === 0) {
+				container.innerHTML = getEmptySupportState();
+				return;
+			}
+
+			container.innerHTML = complaints.map(complaint => {
+				const hasReply = complaint.reply && complaint.reply.trim() !== '';
+				const dateStr = complaint.complainDate ? new Date(complaint.complainDate).toLocaleDateString() : 'N/A';
+				
+				return `
+					<div class="complaint-card">
+						<div class="complaint-header">
+							<span class="complaint-id">Complaint #${complaint.feedbackId}</span>
+							<span class="complaint-type">${hasReply ? 'Replied' : 'Open'}</span>
+						</div>
+						<div class="complaint-details">
+							<div><i class="bi bi-calendar3"></i> Submitted: ${dateStr}</div>
+						</div>
+						<div class="complaint-description">${complaint.description || 'No description provided'}</div>
+						${hasReply ? `
+							<div class="complaint-reply">
+								<div class="complaint-reply-header">Customer Service Reply</div>
+								${complaint.reply}
+							</div>
+						` : `
+							<div class="complaint-pending">No reply yet from customer service</div>
+						`}
+						${!hasReply ? `<div class="complaint-actions"><button type="button" class="btn profile-secondary-btn" onclick="editSupportRequest(${complaint.feedbackId})">Edit</button><button type="button" class="btn btn-outline-danger" onclick="deleteSupportRequest(${complaint.feedbackId})">Delete</button></div>` : ''}
+					</div>
+				`;
+			}).join('');
+		}
+
+		function getEmptySupportState() {
+			return `
+				<div class="profile-empty-state compact">
+					<div class="profile-empty-icon"><i class="bi bi-headset"></i></div>
+					<h3>No support requests</h3>
+					<p>Your feedback and support requests will appear here.</p>
+					<a class="btn profile-secondary-btn" href="feedback.html"><i class="bi bi-chat-square-text"></i><span>Contact Support</span></a>
+				</div>
+			`;
+		}
+
+		async function editSupportRequest(id) {
+			const item = await fetch(`${FEEDBACK_API}/${id}`).then(response => response.ok ? response.json() : null);
+			if (!item) return;
+			const description = prompt('Update your submission:', item.description || '');
+			if (description === null || !description.trim()) return;
+			const response = await fetch(`${FEEDBACK_API}/${id}`, { method: 'PUT', credentials: 'same-origin', headers: {'Content-Type':'application/json'}, body: JSON.stringify({name:item.name, type:item.type, description:description.trim()}) });
+			if (!response.ok) { alert(await response.text()); return; }
+			loadUserComplaints();
+		}
+
+		async function deleteSupportRequest(id) {
+			if (!confirm('Delete this support request?')) return;
+			const response = await fetch(`${FEEDBACK_API}/${id}`, { method: 'DELETE', credentials: 'same-origin' });
+			if (!response.ok) { alert(await response.text()); return; }
+			loadUserComplaints();
+		}
+
+		function setupEventListeners() {
+			const openEditor = () => {
+				document.getElementById('viewMode').classList.add('hidden');
+				document.getElementById('editMode').classList.remove('hidden');
+				document.getElementById('editToggle').classList.add('hidden');
+			};
+
+			document.getElementById('editToggle').addEventListener('click', openEditor);
+			document.getElementById('summaryEditBtn').addEventListener('click', openEditor);
+
+			document.getElementById('cancelEdit').addEventListener('click', () => {
+				document.getElementById('viewMode').classList.remove('hidden');
+				document.getElementById('editMode').classList.add('hidden');
+				document.getElementById('editToggle').classList.remove('hidden');
+				clearValidationErrors();
+				loadUserProfile();
+			});
+
+				document.getElementById('editMode').addEventListener('submit', async (e) => {
+					e.preventDefault();
+					await saveProfileChanges();
+				});
+
+				document.getElementById('deleteAccount').addEventListener('click', deleteAccount);
+
+			document.getElementById('navSignout').addEventListener('click', () => {
+				localStorage.removeItem('currentUser');
+				window.location.href = 'index.html';
+			});
+
+			document.getElementById('notificationBell').addEventListener('click', (event) => {
+				event.stopPropagation();
+				setNotificationDropdown(!notificationDropdownVisible);
+			});
+
+			document.getElementById('notificationDropdown').addEventListener('click', (event) => {
+				event.stopPropagation();
+			});
+
+			document.getElementById('markAllRead').addEventListener('click', () => {
+				if (!currentUser || !currentUser.nic) return;
+				fetch(`/api/notifications/user/${currentUser.nic}/read-all`, { method: 'PUT' })
+					.then(loadNotifications)
+					.catch(error => console.error('Error marking all as read:', error));
+			});
+
+			document.addEventListener('click', (event) => {
+				const wrapper = document.getElementById('notificationWrapper');
+				if (!wrapper.contains(event.target)) setNotificationDropdown(false);
+			});
+
+			document.addEventListener('keydown', (event) => {
+				if (event.key === 'Escape') setNotificationDropdown(false);
+			});
+
+			window.addEventListener('scroll', () => {
+				document.getElementById('mainNavbar').classList.toggle('is-scrolled', window.scrollY > 8);
+			});
+		}
+
+		function validateFirstName(firstName) {
+			const trimmed = firstName.trim();
+			if (!trimmed) return 'First name is required';
+			if (trimmed.length < 2) return 'First name must be at least 2 characters long';
+			if (trimmed.length > 50) return 'First name must be less than 50 characters';
+			if (!/^[a-zA-Z\s'-]+$/.test(trimmed)) return 'First name can only contain letters, spaces, hyphens, and apostrophes';
+			return null;
+		}
+
+		function validateLastName(lastName) {
+			const trimmed = lastName.trim();
+			if (!trimmed) return 'Last name is required';
+			if (trimmed.length < 2) return 'Last name must be at least 2 characters long';
+			if (trimmed.length > 50) return 'Last name must be less than 50 characters';
+			if (!/^[a-zA-Z\s'-]+$/.test(trimmed)) return 'Last name can only contain letters, spaces, hyphens, and apostrophes';
+			return null;
+		}
+
+		function validateEmail(email) {
+			const trimmed = email.trim();
+			if (!trimmed) return 'Email is required';
+			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+			if (!emailRegex.test(trimmed)) return 'Please enter a valid email address';
+			if (trimmed.length > 100) return 'Email must be less than 100 characters';
+			return null;
+		}
+
+		function validatePhone(phone) {
+			const trimmed = phone.trim();
+			if (!trimmed) return null;
+			const digitsOnly = trimmed.replace(/\D/g, '');
+			if (digitsOnly.length !== 10) return 'Phone number must be exactly 10 digits';
+			const phoneRegex = /^[0-9\s\-\(\)]{10,15}$/;
+			if (!phoneRegex.test(trimmed)) return 'Please enter a valid phone number';
+			return null;
+		}
+
+		function validateNIC(nic) {
+			const trimmed = nic.trim();
+			if (!trimmed) return 'NIC number is required';
+			const newNicRegex = /^[0-9]{12}$/;
+			const oldNicRegex = /^[0-9]{9}[VX]$/i;
+			if (!newNicRegex.test(trimmed) && !oldNicRegex.test(trimmed)) return 'Please enter a valid NIC number (12 digits or 9 digits with V or X)';
+			return null;
+		}
+
+		function validatePassword(password) {
+			if (!password) return null;
+			if (password.length < 8) return 'Password must be at least 8 characters long';
+			if (password.length > 100) return 'Password must be less than 100 characters';
+			const hasUpperCase = /[A-Z]/.test(password);
+			const hasLowerCase = /[a-z]/.test(password);
+			const hasNumbers = /\d/.test(password);
+			if (!hasUpperCase || !hasLowerCase || !hasNumbers) return 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+			return null;
+		}
+
+		function setupValidation() {
+			const inputs = [
+				{ id: 'editFirstName', validator: validateFirstName, errorId: 'firstNameError' },
+				{ id: 'editLastName', validator: validateLastName, errorId: 'lastNameError' },
+				{ id: 'editEmail', validator: validateEmail, errorId: 'emailError' },
+				{ id: 'editPhone', validator: validatePhone, errorId: 'phoneError' },
+				{ id: 'editNic', validator: validateNIC, errorId: 'nicError' },
+				{ id: 'editPassword', validator: validatePassword, errorId: 'passwordError' }
+			];
+
+			inputs.forEach(({ id, validator, errorId }) => {
+				const input = document.getElementById(id);
+				const errorElement = document.getElementById(errorId);
+				input.addEventListener('input', () => validateField(input, validator, errorElement));
+				input.addEventListener('blur', () => validateField(input, validator, errorElement));
+			});
+		}
+
+		function validateField(input, validator, errorElement) {
+			const error = validator(input.value);
+			if (error) {
+				input.classList.add('error');
+				input.classList.remove('success');
+				errorElement.textContent = error;
+			} else {
+				input.classList.remove('error');
+				input.classList.add('success');
+				errorElement.textContent = '';
+			}
+		}
+
+		function validateForm() {
+			const inputs = [
+				{ id: 'editFirstName', validator: validateFirstName, errorId: 'firstNameError' },
+				{ id: 'editLastName', validator: validateLastName, errorId: 'lastNameError' },
+				{ id: 'editEmail', validator: validateEmail, errorId: 'emailError' },
+				{ id: 'editPhone', validator: validatePhone, errorId: 'phoneError' },
+				{ id: 'editNic', validator: validateNIC, errorId: 'nicError' },
+				{ id: 'editPassword', validator: validatePassword, errorId: 'passwordError' }
+			];
+
+			const errors = [];
+			let isValid = true;
+
+			inputs.forEach(({ id, validator, errorId }) => {
+				const input = document.getElementById(id);
+				const errorElement = document.getElementById(errorId);
+				const error = validator(input.value);
+				
+				if (error) {
+					input.classList.add('error');
+					input.classList.remove('success');
+					errorElement.textContent = error;
+					errors.push(error);
+					isValid = false;
+				} else {
+					input.classList.remove('error');
+					input.classList.add('success');
+					errorElement.textContent = '';
+				}
+			});
+
+			const validationSummary = document.getElementById('validationSummary');
+			const validationErrors = document.getElementById('validationErrors');
+			
+			if (!isValid) {
+				validationErrors.innerHTML = errors.map(error => `<li>${error}</li>`).join('');
+				validationSummary.classList.add('show');
+			} else {
+				validationSummary.classList.remove('show');
+			}
+
+			return isValid;
+		}
+
+		function clearValidationErrors() {
+			const inputs = ['editFirstName', 'editLastName', 'editEmail', 'editPhone', 'editNic', 'editPassword'];
+			const errorIds = ['firstNameError', 'lastNameError', 'emailError', 'phoneError', 'nicError', 'passwordError'];
+
+			inputs.forEach((inputId, index) => {
+				const input = document.getElementById(inputId);
+				const errorElement = document.getElementById(errorIds[index]);
+				input.classList.remove('error', 'success');
+				errorElement.textContent = '';
+			});
+
+			document.getElementById('validationSummary').classList.remove('show');
+		}
+
+			async function saveProfileChanges() {
+			if (!validateForm()) {
+				showMessage('Please fix the validation errors before saving.', 'error');
+				return;
+			}
+
+			async function deleteAccount() {
+				const confirmation = prompt('This permanently deletes your profile. Type DELETE to continue.');
+				if (confirmation !== 'DELETE') return;
+
+				const deleteButton = document.getElementById('deleteAccount');
+				deleteButton.disabled = true;
+				try {
+					const response = await fetch(`${API}/me`, { method: 'DELETE', credentials: 'same-origin' });
+					if (response.status === 204) {
+						localStorage.removeItem('currentUser');
+						window.location.href = 'index.html';
+						return;
+					}
+					const message = await response.text();
+					showMessage(message || 'Unable to delete your account. Please try again.', 'error');
+				} catch (error) {
+					console.error('Error deleting account:', error);
+					showMessage('Unable to delete your account. Please try again.', 'error');
+				} finally {
+					deleteButton.disabled = false;
+				}
+			}
+
+			try {
+				const updates = {
+					firstName: document.getElementById('editFirstName').value.trim(),
+					lastName: document.getElementById('editLastName').value.trim(),
+					email: document.getElementById('editEmail').value.trim(),
+					phone: document.getElementById('editPhone').value.trim(),
+					nic: document.getElementById('editNic').value.trim()
+				};
+
+				const password = document.getElementById('editPassword').value;
+				if (password) updates.password = password;
+
+				const response = await fetch(`${API}/${currentUser.id}`, {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(updates)
+				});
+
+				if (response.ok) {
+					const saved = await response.json();
+					currentUser = saved;
+					localStorage.setItem('currentUser', JSON.stringify(saved));
+					
+					document.getElementById('viewMode').classList.remove('hidden');
+					document.getElementById('editMode').classList.add('hidden');
+					document.getElementById('editToggle').classList.remove('hidden');
+					loadUserProfile();
+					showMessage('Profile updated successfully!', 'success');
+				} else {
+					showMessage('Failed to update profile. Please try again.', 'error');
+				}
+			} catch (error) {
+				console.error('Error updating profile:', error);
+				showMessage('Error updating profile. Please try again.', 'error');
+			}
+		}
+
+		async function requestRefund(bookingId, paymentId) {
+			try {
+				const refundButton = event.target;
+				refundButton.disabled = true;
+				refundButton.textContent = 'Processing...';
+				
+				const response = await fetch(`${PAYMENTS_API}/${paymentId}/status`, {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ paymentStatus: 'refund requested' })
+				});
+				
+				if (response.ok) {
+					refundButton.textContent = 'Refund Requested';
+					refundButton.disabled = true;
+					const bookingCard = refundButton.closest('.booking-card');
+					const statusElement = bookingCard.querySelector('.booking-status');
+					statusElement.className = 'booking-status refund-requested';
+					statusElement.textContent = 'Refund Requested';
+					showMessage('Refund request submitted successfully!', 'success');
+					loadUserBookings();
+				} else {
+					refundButton.disabled = false;
+					refundButton.textContent = 'Request Refund';
+					showMessage('Failed to submit refund request. Please try again.', 'error');
+				}
+			} catch (error) {
+				console.error('Error requesting refund:', error);
+				const refundButton = event.target;
+				refundButton.disabled = false;
+				refundButton.textContent = 'Request Refund';
+				showMessage('Error submitting refund request. Please try again.', 'error');
+			}
+		}
+
+		function showMessage(message, type) {
+			const container = document.getElementById('messageContainer');
+			const messageDiv = document.createElement('div');
+			messageDiv.className = `message ${type}`;
+			messageDiv.textContent = message;
+			container.innerHTML = '';
+			container.appendChild(messageDiv);
+			setTimeout(() => messageDiv.remove(), 5000);
+		}
+
+		function getTimeAgo(dateString) {
+			const now = new Date();
+			const past = new Date(dateString);
+			const seconds = Math.floor((now - past) / 1000);
+			if (seconds < 60) return 'Just now';
+			const minutes = Math.floor(seconds / 60);
+			if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+			const hours = Math.floor(minutes / 60);
+			if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+			const days = Math.floor(hours / 24);
+			return `${days} day${days > 1 ? 's' : ''} ago`;
+		}
+
+		function loadNotifications() {
+			if (!currentUser || !currentUser.nic) return;
+			fetch(`/api/notifications/user/${currentUser.nic}`)
+				.then(response => response.json())
+				.then(notifications => {
+					displayNotifications(notifications);
+					updateNotificationBadge();
+				})
+				.catch(error => console.error('Error loading notifications:', error));
+		}
+
+		function getNotificationEmptyState() {
+			return `
+				<div class="notification-empty">
+					<i class="bi bi-bell-slash"></i>
+					<strong>You're all caught up</strong>
+					<span>New booking and support updates will appear here.</span>
+				</div>
+			`;
+		}
+
+		function getNotificationTitle(notification) {
+			const message = (notification.message || '').toLowerCase();
+			if (message.includes('booking') || message.includes('reservation')) return 'Booking update';
+			if (message.includes('payment')) return 'Payment update';
+			if (message.includes('feedback') || message.includes('support')) return 'Support update';
+			return 'LankaRide update';
+		}
+
+		function displayNotifications(notifications) {
+			const list = document.getElementById('notificationList');
+			const markAllButton = document.getElementById('markAllRead');
+			const items = Array.isArray(notifications) ? notifications : [];
+			markAllButton.disabled = !items.some(notification => !notification.isRead);
+			if (items.length === 0) {
+				list.innerHTML = getNotificationEmptyState();
+				return;
+			}
+
+			list.innerHTML = items.map(notification => `
+				<button class="notification-item ${!notification.isRead ? 'unread' : ''}" data-id="${notification.id}" type="button">
+					<span class="notification-type-icon"><i class="bi bi-bell"></i></span>
+					<span class="notification-content">
+						<span class="notification-title">${getNotificationTitle(notification)}</span>
+						<span class="notification-message">${notification.message || 'You have a new LankaRide update.'}</span>
+						<span class="notification-time">${getTimeAgo(notification.createdAt)}</span>
+					</span>
+					${!notification.isRead ? '<span class="notification-dot" aria-hidden="true"></span>' : '<span></span>'}
+				</button>
+			`).join('');
+
+			list.querySelectorAll('.notification-item').forEach(item => {
+				item.addEventListener('click', () => markNotificationAsRead(item.dataset.id));
+			});
+		}
+
+		function updateNotificationBadge() {
+			if (!currentUser || !currentUser.nic) return;
+			fetch(`/api/notifications/user/${currentUser.nic}/count`)
+				.then(response => response.json())
+				.then(data => {
+					const badge = document.getElementById('notificationBadge');
+					if (data.unreadCount > 0) {
+						badge.textContent = data.unreadCount > 99 ? '99+' : data.unreadCount;
+						badge.classList.remove('hidden');
+					} else {
+						badge.classList.add('hidden');
+					}
+				})
+				.catch(error => console.error('Error updating notification badge:', error));
+		}
+
+		function markNotificationAsRead(notificationId) {
+			fetch(`/api/notifications/${notificationId}/read`, { method: 'PUT' })
+				.then(loadNotifications)
+				.catch(error => console.error('Error marking notification as read:', error));
+		}
+
+		function setNotificationDropdown(open) {
+			const dropdown = document.getElementById('notificationDropdown');
+			const bell = document.getElementById('notificationBell');
+			notificationDropdownVisible = open;
+			dropdown.classList.toggle('is-open', open);
+			dropdown.classList.toggle('hidden', !open);
+			bell.setAttribute('aria-expanded', String(open));
+			if (open) loadNotifications();
+		}
+	</script>
+</body>
+</html>

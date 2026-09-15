@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Operations Dashboard | LankaRide</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+	<link rel="stylesheet" href="css/srilanka-travel.css" />
+</head>
+<body class="lk-travel lk-admin-page staff-page">
+	<div class="topbar staff-topbar">
+		<div class="staff-topbar-title">
+			<strong>Operations Dashboard</strong>
+			<span>Manage the LankaRide fleet, routes and service schedules.</span>
+		</div>
+		<div class="staff-topbar-actions">
+			<span class="staff-user-chip"><i class="bi bi-diagram-3"></i> Operations</span>
+			<a class="button secondary" href="index.html"><i class="bi bi-globe2"></i> View Website</a>
+			<button id="signout" class="button" type="button"><i class="bi bi-box-arrow-right"></i> Sign Out</button>
+		</div>
+	</div>
+	<div class="layout staff-shell">
+		<aside class="sidebar staff-sidebar">
+			<div class="staff-sidebar-brand">
+				<div class="brand-line"><i class="bi bi-bus-front"></i><span>LankaRide</span></div>
+				<small>Staff Portal</small>
+			</div>
+			<div class="staff-role-badge">Operations</div>
+			<ul class="menu staff-nav">
+				<li><a class="active" href="operationdashboard.html"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+				<li><a href="bus.html"><i class="bi bi-bus-front"></i> Bus Management</a></li>
+				<li><a href="route.html"><i class="bi bi-signpost-split"></i> Route Management</a></li>
+				<li><a href="schedule.html"><i class="bi bi-calendar3"></i> Schedule Management</a></li>
+				<li><a href="index.html"><i class="bi bi-arrow-left-circle"></i> Return to Website</a></li>
+			</ul>
+		</aside>
+		<main class="content staff-main">
+			<section class="staff-page-header">
+				<div>
+					<div class="staff-breadcrumb">Staff Portal / Operations</div>
+					<h1>Operations Dashboard</h1>
+					<p>Manage the LankaRide fleet, routes and service schedules.</p>
+				</div>
+				<a class="button" href="schedule.html"><i class="bi bi-calendar-plus"></i> Manage Schedules</a>
+			</section>
+
+			<section class="lk-admin-stat-grid three">
+				<div class="lk-admin-stat"><span>Total Buses</span><strong id="busCount">0</strong></div>
+				<div class="lk-admin-stat"><span>Total Routes</span><strong id="routeCount">0</strong></div>
+				<div class="lk-admin-stat"><span>Total Schedules</span><strong id="scheduleCount">0</strong></div>
+			</section>
+
+			<section class="staff-content-grid">
+				<div class="staff-panel">
+					<div class="staff-panel-header">
+						<div>
+							<h2>Recent Schedules</h2>
+							<p>Latest service schedules loaded from the system.</p>
+						</div>
+						<a class="button secondary small" href="schedule.html">View all</a>
+					</div>
+					<div id="recentSchedules" class="staff-list">
+						<div class="loading">Loading recent schedules...</div>
+					</div>
+				</div>
+				<div class="staff-panel">
+					<div class="staff-panel-header">
+						<div>
+							<h2>Quick Actions</h2>
+							<p>Maintain fleet, routes and schedules.</p>
+						</div>
+					</div>
+					<div class="staff-quick-list">
+						<a class="staff-action" href="bus.html"><i class="bi bi-bus-front"></i><span><strong>Manage Buses</strong><span>Add buses and maintain registrations.</span></span><i class="bi bi-arrow-right"></i></a>
+						<a class="staff-action" href="route.html"><i class="bi bi-signpost-split"></i><span><strong>Manage Routes</strong><span>Create and update stand-to-stand routes.</span></span><i class="bi bi-arrow-right"></i></a>
+						<a class="staff-action" href="schedule.html"><i class="bi bi-calendar3"></i><span><strong>Manage Schedules</strong><span>Assign buses to routes and dates.</span></span><i class="bi bi-arrow-right"></i></a>
+					</div>
+				</div>
+			</section>
+		</main>
+	</div>
+	<script>
+		async function count(endpoint, id) {
+			try {
+				const res = await fetch(endpoint);
+				if (res.ok) document.getElementById(id).textContent = (await res.json()).length;
+			} catch (error) { console.error(error); }
+		}
+
+		async function loadRecentSchedules() {
+			try {
+				const res = await fetch('/api/schedules');
+				if (!res.ok) throw new Error('Failed to load schedules');
+				const schedules = (await res.json()).slice(0, 6);
+				const target = document.getElementById('recentSchedules');
+				if (!schedules.length) {
+					target.innerHTML = '<div class="staff-empty-state">No schedules are available yet.</div>';
+					return;
+				}
+				target.innerHTML = schedules.map(schedule => {
+					const route = schedule.route || {};
+					const bus = schedule.bus || {};
+					return `
+						<div class="staff-list-row">
+							<div>
+								<strong>${bus.registrationNo || 'Bus not assigned'} · ${route.fromStand || 'N/A'} to ${route.toStand || 'N/A'}</strong>
+								<p>${schedule.travelDate || 'No date'} · ${schedule.startTime || 'No start time'} - ${schedule.endTime || 'No end time'}</p>
+							</div>
+							<span class="staff-status-badge success">Scheduled</span>
+						</div>
+					`;
+				}).join('');
+			} catch (error) {
+				console.error(error);
+				document.getElementById('recentSchedules').innerHTML = '<div class="staff-empty-state">Unable to load recent schedules.</div>';
+			}
+		}
+
+		count('/api/buses', 'busCount');
+		count('/api/routes', 'routeCount');
+		count('/api/schedules', 'scheduleCount');
+		loadRecentSchedules();
+
+		document.getElementById('signout').addEventListener('click', () => {
+			localStorage.removeItem('currentUser');
+			window.location.href = 'login.html';
+		});
+	</script>
+</body>
+</html>

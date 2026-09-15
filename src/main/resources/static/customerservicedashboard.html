@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Customer Service Dashboard | LankaRide</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+	<link rel="stylesheet" href="css/srilanka-travel.css" />
+</head>
+<body class="lk-travel lk-admin-page staff-page">
+	<div class="topbar staff-topbar">
+		<div class="staff-topbar-title">
+			<strong>Customer Service Dashboard</strong>
+			<span>Manage passenger complaints, feedback and booking enquiries.</span>
+		</div>
+		<div class="staff-topbar-actions">
+			<span class="staff-user-chip"><i class="bi bi-headset"></i> Customer Service</span>
+			<a class="button secondary" href="index.html"><i class="bi bi-globe2"></i> View Website</a>
+			<button id="signout" class="button" type="button"><i class="bi bi-box-arrow-right"></i> Sign Out</button>
+		</div>
+	</div>
+	<div class="layout staff-shell">
+		<aside class="sidebar staff-sidebar">
+			<div class="staff-sidebar-brand">
+				<div class="brand-line"><i class="bi bi-bus-front"></i><span>LankaRide</span></div>
+				<small>Staff Portal</small>
+			</div>
+			<div class="staff-role-badge">Customer Service</div>
+			<ul class="menu staff-nav">
+				<li><a class="active" href="customerservicedashboard.html"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+				<li><a href="complainmanagement.html"><i class="bi bi-chat-left-text"></i> Complaint Management</a></li>
+				<li><a href="passengersbooking.html"><i class="bi bi-ticket-perforated"></i> Passenger Bookings</a></li>
+				<li><a href="index.html"><i class="bi bi-arrow-left-circle"></i> Return to Website</a></li>
+			</ul>
+		</aside>
+		<main class="content staff-main">
+			<section class="staff-page-header">
+				<div>
+					<div class="staff-breadcrumb">Staff Portal / Customer Service</div>
+					<h1>Customer Service Dashboard</h1>
+					<p>Manage passenger complaints, feedback and booking enquiries.</p>
+				</div>
+				<a class="button" href="complainmanagement.html"><i class="bi bi-chat-left-text"></i> Open Complaints</a>
+			</section>
+
+			<section class="lk-admin-stat-grid">
+				<div class="lk-admin-stat"><span>Total Feedback</span><strong id="totalFeedback">0</strong></div>
+				<div class="lk-admin-stat"><span>Open Complaints</span><strong id="complainCount">0</strong></div>
+				<div class="lk-admin-stat"><span>Waiting for Reply</span><strong id="withoutReplies">0</strong></div>
+				<div class="lk-admin-stat"><span>Replied</span><strong id="withReplies">0</strong></div>
+			</section>
+
+			<section class="staff-content-grid">
+				<div class="staff-panel">
+					<div class="staff-panel-header">
+						<div>
+							<h2>Recent Complaints and Feedback</h2>
+							<p>Newest customer-service requests from passengers.</p>
+						</div>
+						<a class="button secondary small" href="complainmanagement.html">View all</a>
+					</div>
+					<div id="recentFeedback" class="staff-list">
+						<div class="loading">Loading customer-service requests...</div>
+					</div>
+				</div>
+				<div class="staff-panel">
+					<div class="staff-panel-header">
+						<div>
+							<h2>Quick Actions</h2>
+							<p>Common customer-service tasks.</p>
+						</div>
+					</div>
+					<div class="staff-quick-list">
+						<a class="staff-action" href="complainmanagement.html"><i class="bi bi-chat-left-text"></i><span><strong>Open Complaint Management</strong><span>Reply to passenger issues and feedback.</span></span><i class="bi bi-arrow-right"></i></a>
+						<a class="staff-action" href="passengersbooking.html"><i class="bi bi-search"></i><span><strong>Search Passenger Bookings</strong><span>Find bookings by passenger details.</span></span><i class="bi bi-arrow-right"></i></a>
+						<a class="staff-action" href="index.html"><i class="bi bi-globe2"></i><span><strong>Return to Website</strong><span>Open the public LankaRide site.</span></span><i class="bi bi-arrow-right"></i></a>
+					</div>
+				</div>
+			</section>
+		</main>
+	</div>
+	<script>
+		fetch('/api/feedback/stats', { credentials: 'same-origin' }).then(res => {
+			if (!res.ok) throw new Error(`Stats request failed: ${res.status}`);
+			return res.json();
+		}).then(stats => {
+			document.getElementById('totalFeedback').textContent = stats.totalFeedback || 0;
+			document.getElementById('complainCount').textContent = stats.complainCount || 0;
+			document.getElementById('withoutReplies').textContent = stats.withoutReplies || 0;
+			document.getElementById('withReplies').textContent = stats.withReplies || 0;
+		}).catch(console.error);
+
+		fetch('/api/feedback', { credentials: 'same-origin' }).then(res => {
+			if (!res.ok) throw new Error(`Feedback request failed: ${res.status}`);
+			return res.json();
+		}).then(items => {
+			const target = document.getElementById('recentFeedback');
+			const recent = (Array.isArray(items) ? items : []).slice(0, 6);
+			if (!recent.length) {
+				target.innerHTML = '<div class="staff-empty-state">No customer-service requests yet.</div>';
+				return;
+			}
+			target.innerHTML = recent.map(item => `
+				<div class="staff-list-row">
+					<div>
+						<strong>${item.name || 'Passenger'} · ${item.type || 'Feedback'}</strong>
+						<p>${item.description || 'No description provided.'}</p>
+						<span>${item.createdAt || item.date || 'Date not available'}</span>
+					</div>
+					<span class="staff-status-badge ${item.reply ? 'success' : 'pending'}">${item.reply ? 'Replied' : 'Waiting'}</span>
+				</div>
+			`).join('');
+		}).catch(() => {
+			document.getElementById('recentFeedback').innerHTML = '<div class="staff-empty-state">Unable to load customer-service requests.</div>';
+		});
+
+		document.getElementById('signout').addEventListener('click', () => {
+			localStorage.removeItem('currentUser');
+			window.location.href = 'login.html';
+		});
+	</script>
+</body>
+</html>
